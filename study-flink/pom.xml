@@ -5,13 +5,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.yee</groupId>
-    <artifactId>bigdata-study-flink</artifactId>
+    <groupId>com.yee.study</groupId>
+    <artifactId>bigdata-flink</artifactId>
     <name>Flink Study Module</name>
 
     <parent>
-        <groupId>com.yee</groupId>
-        <artifactId>bigdata-study</artifactId>
+        <groupId>com.yee.study</groupId>
+        <artifactId>bigdata</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
