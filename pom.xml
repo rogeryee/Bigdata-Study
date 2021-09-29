@@ -32,8 +32,8 @@
         <deps.logstash.version>5.1</deps.logstash.version>
         <deps.lombok.version>1.16.22</deps.lombok.version>
         <deps.mockito.version>2.13.0</deps.mockito.version>
-        <deps.scala.version>2.11</deps.scala.version>
-        <deps.spark.version>2.3.1</deps.spark.version>
+        <deps.scala.version>2.11.8</deps.scala.version>
+        <deps.spark.version>2.4.0</deps.spark.version>
         <deps.zookeeper.version>3.4.12</deps.zookeeper.version>
         <deps.zkclient.version>0.10</deps.zkclient.version>
     </properties>
