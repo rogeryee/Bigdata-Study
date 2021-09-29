@@ -8,12 +8,12 @@ import scala.collection.TraversableOnce
  */
 object PrintUtil {
 
-  def _print(prefix: String, obj: Any): Unit = {
-    printImp(Option(prefix), obj)
-  }
-
   def _print(obj: Any): Unit = {
     printImp(None, obj)
+  }
+
+  def _print_(obj: Any)(prefix: String): Unit = {
+    printImp(Option(prefix), obj)
   }
 
   private def printImp(prefix: Option[String], obj: Any): Unit = {
@@ -29,5 +29,12 @@ object PrintUtil {
     }
 
     println(prefixStr + msg)
+  }
+
+  def main(args: Array[String]): Unit = {
+    _print_("abc", "cde")("Pre")
+    _print_(1, 2, 3)("Pre")
+    _print(1, 2, 3)
+    _print_(1, 2, 3)("Pre")
   }
 }

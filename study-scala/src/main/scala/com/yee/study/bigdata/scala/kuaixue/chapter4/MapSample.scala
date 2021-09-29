@@ -1,6 +1,6 @@
 package com.yee.study.bigdata.scala.kuaixue.chapter4
 
-import com.yee.study.bigdata.scala.util.PrintUtil.{_print}
+import com.yee.study.bigdata.scala.util.PrintUtil.{_print, _print_}
 
 import scala.collection.mutable.{Map => MutableMap}
 
@@ -34,13 +34,13 @@ object MapSample {
     // 更新
     scoresMutable("Bob") = 10
     scoresMutable("Fred") = 7
-    _print("step1", scoresMutable)
+    _print_(scoresMutable)("step1")
 
     scoresMutable += ("Bob" -> 3, "Fred" -> 2)
-    _print("step2", scoresMutable)
+    _print_(scoresMutable)("step2")
 
     scoresMutable -= "Alice" // 移除键值
-    _print("step3", scoresMutable)
+    _print_(scoresMutable)("step3")
 
     val newScores = scores + ("Bob" -> 10, "Roger" -> 1)
     _print(newScores)

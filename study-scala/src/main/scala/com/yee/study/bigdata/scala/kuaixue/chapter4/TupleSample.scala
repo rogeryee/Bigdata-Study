@@ -13,5 +13,11 @@ object TupleSample {
     _print(t._1)
     _print(t._2)
     _print(t _2)
+
+    val (first, second, third) = t
+    _print(first, second, third)
+
+    val (first2, _, third2) = t
+    _print(first2, third2)
   }
 }
