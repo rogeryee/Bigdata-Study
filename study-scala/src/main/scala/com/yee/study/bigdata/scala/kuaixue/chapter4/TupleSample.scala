@@ -19,5 +19,13 @@ object TupleSample {
 
     val (first2, _, third2) = t
     _print(first2, third2)
+
+    // 拉链操作
+    val symbols = Array("<", "=", ">")
+    val counts = Array(2, 10, 2)
+    val pairs = symbols.zip(counts)
+    _print(pairs.toList)
+
+    for((s, n) <- pairs) print(s * n)
   }
 }
