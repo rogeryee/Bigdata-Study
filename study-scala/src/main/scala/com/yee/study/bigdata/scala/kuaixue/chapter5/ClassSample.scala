@@ -16,7 +16,6 @@ object ClassSample {
     val person = new Person
     person.age_=(21) // setter
     _print(person.age) // getter
-
   }
 
   class Counter {
