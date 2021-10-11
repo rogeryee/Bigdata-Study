@@ -31,6 +31,8 @@ object ClassSample {
   class Person {
     var privateAge = 0
 
+    var name: String = _
+
     def age = {
       _print("getter of age")
       privateAge

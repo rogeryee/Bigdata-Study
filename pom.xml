@@ -21,7 +21,6 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <deps.apache.curator.version>4.0.0</deps.apache.curator.version>
         <deps.apache.flink.version>1.6.2</deps.apache.flink.version>
         <deps.hadoop.verison>2.7.3</deps.hadoop.verison>
         <deps.hbase.client.version>1.2.3</deps.hbase.client.version>
@@ -35,8 +34,7 @@
         <deps.scala.version>2.11.8</deps.scala.version>
         <deps.spark.scala.version>2.11</deps.spark.scala.version>
         <deps.spark.version>2.4.0</deps.spark.version>
-        <deps.zookeeper.version>3.4.12</deps.zookeeper.version>
-        <deps.zkclient.version>0.10</deps.zkclient.version>
+        <deps.zookeeper.version>3.6.3</deps.zookeeper.version>
     </properties>
 
     <dependencies>
@@ -54,12 +52,12 @@
             <version>${deps.logback.version}</version>
         </dependency>
 
-        <!-- logstash -->
-        <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>${deps.logstash.version}</version>
-        </dependency>
+<!--        &lt;!&ndash; logstash &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>net.logstash.logback</groupId>-->
+<!--            <artifactId>logstash-logback-encoder</artifactId>-->
+<!--            <version>${deps.logstash.version}</version>-->
+<!--        </dependency>-->
 
         <!-- Junit -->
         <dependency>
