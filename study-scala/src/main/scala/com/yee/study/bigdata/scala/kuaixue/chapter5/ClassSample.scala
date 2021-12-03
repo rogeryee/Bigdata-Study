@@ -16,6 +16,8 @@ object ClassSample {
     val person = new Person
     person.age_=(21) // setter
     _print(person.age) // getter
+
+    _print(DataLevel.App.toString)
   }
 
   class Counter {
@@ -44,4 +46,11 @@ object ClassSample {
     }
   }
 
+  object DataLevel extends Enumeration{
+    val Ods = Value("ods")
+    val Dwd = Value("dwd")
+    val Dwt = Value("dwt")
+    val Dwa = Value("dwa")
+    val App = Value("app")
+  }
 }
