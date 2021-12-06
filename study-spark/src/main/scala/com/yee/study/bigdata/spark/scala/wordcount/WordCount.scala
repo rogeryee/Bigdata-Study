@@ -26,7 +26,7 @@ object WordCount {
 
     System.setProperty("hadoop.home.dir", "/Users/RogerYee/MyWork/DevTools/hadoop-2.7.3")
     
-    val file = "java-study-spark/data/wordcount.csv"
+    val file = "study-spark/data/wordcount.csv"
 
     val spark = SparkSession
       .builder()
