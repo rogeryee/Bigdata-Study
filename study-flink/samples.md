@@ -27,3 +27,15 @@
 >> ### 通过 fromCollection 方式来读取 Collection 的示例
 >> class  : SourceCollection
 >> package: com.yee.study.bigdata.flink.source.builtin
+>
+>> ### 自定义读取mysql的数据源 示例
+>> class  : SourceMySQL
+>> package: com.yee.study.bigdata.flink.source.userdefine
+> 
+>> ### 自定义无并行度的数据源 示例
+>> class  : SourceNoParallel
+>> package: com.yee.study.bigdata.flink.source.userdefine
+>
+>> ### 自定义带并行度的数据源 示例
+>> class  : SourceParallel
+>> package: com.yee.study.bigdata.flink.source.userdefine
