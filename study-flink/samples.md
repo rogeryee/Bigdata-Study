@@ -23,3 +23,7 @@
 >> ### 通过 readTextFile 方式来读取 HDFS文件 的示例
 >> class  : SourceHDFSFile
 >> package: com.yee.study.bigdata.flink.source.builtin
+>
+>> ### 通过 fromCollection 方式来读取 Collection 的示例
+>> class  : SourceCollection
+>> package: com.yee.study.bigdata.flink.source.builtin

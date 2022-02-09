@@ -1,4 +1,4 @@
-package com.yee.study.bigdata.flink.builtin;
+package com.yee.study.bigdata.flink.source.builtin;
 
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.DataSource;
@@ -8,14 +8,14 @@ import org.apache.flink.api.java.operators.DataSource;
  *
  * @author Roger.Yee
  */
-public class SourceHDFSFile {
+public class SourceLocalFile {
 
     public static void main(String[] args) throws Exception {
         ExecutionEnvironment executionEnvironment = ExecutionEnvironment.getExecutionEnvironment();
-        executionEnvironment.setParallelism(2);
+        executionEnvironment.setParallelism(1);
 
-        // 读取 HDFS 文件，需要准备 core-site.xml 和 hdfs-site.xml 文件放置到项目中
-        DataSource<String> lineDS = executionEnvironment.readTextFile("hdfs:///yish/test/test.txt");
+        // 读取本地文件
+        DataSource<String> lineDS = executionEnvironment.readTextFile("file:///Users/cntp/MyWork/yee/bigdata-study/study-flink/data/test.txt");
 
         // 输出
         lineDS.print();

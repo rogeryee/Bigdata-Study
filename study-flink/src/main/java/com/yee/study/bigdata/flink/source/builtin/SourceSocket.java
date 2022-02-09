@@ -1,4 +1,4 @@
-package com.yee.study.bigdata.flink.builtin;
+package com.yee.study.bigdata.flink.source.builtin;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -42,6 +42,6 @@ public class SourceSocket {
         resultDS.print().setParallelism(5);
 
         // 提交执行
-        executionEnvironment.execute("StreamingWordCount running.");
+        executionEnvironment.execute("SourceSocket running.");
     }
 }

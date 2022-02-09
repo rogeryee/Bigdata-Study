@@ -83,6 +83,12 @@
             <version>${deps.hadoop.verison}</version>
         </dependency>
 
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${deps.mysql.java.driver.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
