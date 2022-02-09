@@ -60,6 +60,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${deps.scala.version}</version>
