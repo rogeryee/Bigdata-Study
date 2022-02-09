@@ -71,6 +71,18 @@
             <version>${deps.scala.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-hadoop-compatibility_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${deps.hadoop.verison}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -57,9 +57,9 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
+<!--                <configuration>-->
+<!--                    <scalaVersion>${scala.version}</scalaVersion>-->
+<!--                </configuration>-->
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

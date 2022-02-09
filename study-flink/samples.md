@@ -10,3 +10,16 @@
 >> ### 带webui wordcount 示例
 >> class  : StreamingWordCount
 >> package: com.yee.study.bigdata.flink.wordcount
+>
+> ## Source
+>> ### 通过 socketTextStream 方式来读取数据的示例
+>> class  : SourceSocket
+>> package: com.yee.study.bigdata.flink.source.builtin
+>
+>> ### 通过 readTextFile 方式来读取 本地文件 的示例
+>> class  : SourceLocalFile
+>> package: com.yee.study.bigdata.flink.source.builtin
+>
+>> ### 通过 readTextFile 方式来读取 HDFS文件 的示例
+>> class  : SourceHDFSFile
+>> package: com.yee.study.bigdata.flink.source.builtin
