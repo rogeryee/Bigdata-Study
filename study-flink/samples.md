@@ -39,3 +39,17 @@
 >> ### 自定义带并行度的数据源 示例
 >> class  : SourceParallel
 >> package: com.yee.study.bigdata.flink.source.userdefine
+>
+> ## Transform
+>> ### Map + Filter 示例
+>> class  : TransformMapFilter
+>> package: com.yee.study.bigdata.flink.transform
+>
+>> ### Union 示例
+>> class  : TransformUnion
+>> package: com.yee.study.bigdata.flink.transform
+>
+>> ### Connect + CoMap 示例
+>> class  : TransformConnectCoMapFilter
+>> package: com.yee.study.bigdata.flink.transform
+> 

@@ -5,7 +5,6 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 /**
  * 自定义的 不带并行度 的数据源
@@ -21,7 +20,7 @@ public class SourceNoParallel {
         StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 这个数据源：有节奏的每隔 1s 输出一个顺序递增的自然数
-        DataStreamSource<Long> numberDS = executionEnvironment.addSource(new NoParallelSource())
+        DataStreamSource<Long> numberDS = executionEnvironment.addSource(new LongSourceWithoutParallel(1, 1000))
                 .setParallelism(1);
 
         // 先map一下，再filter一下
@@ -42,28 +41,5 @@ public class SourceNoParallel {
         resultDS.print().setParallelism(2);
 
         executionEnvironment.execute("SourceNoParallel");
-    }
-}
-
-/**
- * 自定义一个不带并行度的 Source，每秒输出一个递增的自然数
- */
-class NoParallelSource implements SourceFunction<Long> {
-
-    private boolean running = true;
-
-    private long number = 1l;
-
-    @Override
-    public void run(SourceContext<Long> ctx) throws Exception {
-        while (running) {
-            ctx.collect(number++);
-            Thread.sleep(1000);
-        }
-    }
-
-    @Override
-    public void cancel() {
-        running = false;
     }
 }

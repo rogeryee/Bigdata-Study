@@ -22,7 +22,7 @@ public class SourceWithParallel {
         StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 这个数据源：有节奏的每隔 1s 输出一个顺序递增的自然数
-        DataStreamSource<Long> numberDS = executionEnvironment.addSource(new ParallelSource()).setParallelism(5);
+        DataStreamSource<Long> numberDS = executionEnvironment.addSource(new LongSourceWithParallel(1, 1000)).setParallelism(5);
 
         // 先map一下，再filter一下
         SingleOutputStreamOperator<Long> resultDS = numberDS.map(new MapFunction<Long, Long>() {
@@ -42,28 +42,5 @@ public class SourceWithParallel {
         resultDS.print().setParallelism(2);
 
         executionEnvironment.execute("SourceWithParallel");
-    }
-}
-
-/**
- * 自定义一个带并行度的 Source，每秒输出一个递增的自然数
- */
-class ParallelSource implements ParallelSourceFunction<Long> {
-
-    private boolean running = true;
-
-    private long number = 1l;
-
-    @Override
-    public void run(SourceContext<Long> ctx) throws Exception {
-        while (running) {
-            ctx.collect(number++);
-            Thread.sleep(1000);
-        }
-    }
-
-    @Override
-    public void cancel() {
-        running = false;
     }
 }
