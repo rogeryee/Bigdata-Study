@@ -52,4 +52,17 @@
 >> ### Connect + CoMap 示例
 >> class  : TransformConnectCoMapFilter
 >> package: com.yee.study.bigdata.flink.transform
+>
+> ## Sink
+>> ### Print + PrintErr 示例
+>> class  : SinkPrint
+>> package: com.yee.study.bigdata.flink.sink.builtin
+>
+>> ### WriteAsText 示例
+>> class  : SinkWrite
+>> package: com.yee.study.bigdata.flink.sink.builtin
+>
+>> ### SinkFunction 示例
+>> class  : SinkPrintSink
+>> package: com.yee.study.bigdata.flink.sink.userdefine
 > 
