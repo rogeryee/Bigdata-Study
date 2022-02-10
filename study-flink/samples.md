@@ -65,4 +65,9 @@
 >> ### SinkFunction 示例
 >> class  : SinkPrintSink
 >> package: com.yee.study.bigdata.flink.sink.userdefine
+>
+> ## Dataset
+>> ### Distinct 算子
+>> class  : DatasetTransformDistinct
+>> package: com.yee.study.bigdata.flink.dataset 
 > 
