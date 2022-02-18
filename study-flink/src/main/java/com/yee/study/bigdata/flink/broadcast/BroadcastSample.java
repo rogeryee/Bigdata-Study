@@ -1,7 +1,6 @@
 package com.yee.study.bigdata.flink.broadcast;
 
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -22,7 +21,7 @@ import java.util.Map;
  *
  * @author Roger.Yi
  */
-public class Broadcast {
+public class BroadcastSample {
 
     public static void main(String[] args) throws Exception {
         // ENV
@@ -37,14 +36,6 @@ public class Broadcast {
         data.add(new Tuple2<>("ww", 17));
         data.add(new Tuple2<>("pp", 32));
         DataSet<Tuple2<String, Integer>> ds1 = env.fromCollection(data);
-
-        // 把需要广播的数据转换成 Map类型，方便比较
-//        DataSet<Map<String, Integer>> toBroadcast = ds1.map(new MapFunction<Tuple2<String, Integer>, Map<String, Integer>>() {
-//            @Override
-//            public Map<String, Integer> map(Tuple2<String, Integer> value) throws Exception {
-//                return null;
-//            }
-//        });
 
         DataSource<String> ds2 = env.fromElements("zs", "ls", "ww", "xx");
 
