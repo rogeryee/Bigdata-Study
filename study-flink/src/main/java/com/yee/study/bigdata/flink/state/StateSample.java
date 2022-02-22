@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author Roger.Yi
  */
-public class StateOperator {
+public class StateSample {
 
     public static void main(String[] args) throws Exception {
         // Env
@@ -43,7 +43,9 @@ public class StateOperator {
 
         // sink
         // Sink Operator 的每一个 Task维护一个 ListState
-        source.addSink(new PrintSink(2)).setParallelism(1);
+        // 设置并行度为1，则全局一个State，输出 (3, 5), (7, 6)
+        // 设置并行度为2，则每个并行度一个State，并行1输出 (3, 7) 并行2输出 (5, 6)
+        source.addSink(new PrintSink(2)).setParallelism(2);
 
         // run
         env.execute("StateOperator");
