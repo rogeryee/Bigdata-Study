@@ -1,17 +1,26 @@
 package com.yee.study.bigdata.flink.window;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.flink.api.common.eventtime.AscendingTimestampsWatermarks;
 import org.apache.flink.api.common.eventtime.TimestampAssigner;
+import org.apache.flink.api.common.eventtime.Watermark;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -48,25 +57,39 @@ public class TimeWindowWithUnOrderedSourceByEventTimeSample {
         DataStreamSource<String> source = env.addSource(new UnOrderedSource());
 
         // Operator
-        SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
-                .flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
-                    @Override
-                    public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {
-                        String[] words = value.split(",");
-                        Arrays.stream(words).map(word -> Tuple2.of(word, 1)).forEach(out::collect);
-                    }
-                })
-                .keyBy(tuple -> tuple.f0)
-                // 每隔 5s 计算过去 10s内 数据的结果。用的是 ProcessingTime
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time
-                        .seconds(5)))
-                .process(new SumProcessFunction());
+        source.flatMap(new FlatMapFunction<String, Tuple2<String, Long>>() {
+            @Override
+            public void flatMap(String input, Collector<Tuple2<String, Long>> out) throws Exception {
+                String[] word = input.split(",");
+                String value = word[0];
+                String eventTime = word[1];
+                out.collect(Tuple2.of(value, Long.valueOf(eventTime)));
+            }
+        })
+              .assignTimestampsAndWatermarks(
+                      WatermarkStrategy
+                              .forGenerator((ctx) -> new PeriodicWatermarkGenerator()) //watermark
+                              .withTimestampAssigner((ctx) -> new TimestampExtractor())) //3)指定时间字段
+              .keyBy(tuple -> tuple.f0)
+              // 每隔 5s 计算过去 10s内 数据的结果。用的是 ProcessingTime
+              .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time.seconds(5)))
+              .process(new LongSumProcessFunction())
+              .print().setParallelism(1);
 
-        // Sink
-        ds.print().setParallelism(1);
+        env.execute("TimeWindowWithUnOrderedSourceByEventTimeSample");
+    }
 
-        // run
-        env.execute("TimeWindowWithOrderedSourceSample");
+    static class PeriodicWatermarkGenerator implements WatermarkGenerator<Tuple2<String, Long>>, Serializable {
+
+        @Override
+        public void onEvent(Tuple2<String, Long> event, long eventTimestamp, WatermarkOutput output) {
+            System.out.println(eventTimestamp);
+        }
+
+        @Override
+        public void onPeriodicEmit(WatermarkOutput output) {
+            output.emitWatermark(new Watermark(System.currentTimeMillis()));
+        }
     }
 
     /**
@@ -84,7 +107,7 @@ public class TimeWindowWithUnOrderedSourceByEventTimeSample {
      * 1、在第 13s 的时候，输出两条数据
      * 2、在第 16s 的时候，输出一条数据
      */
-    public static class UnOrderedSource implements SourceFunction<String> {
+    static class UnOrderedSource implements SourceFunction<String> {
 
         private FastDateFormat dateformat = FastDateFormat.getInstance("HH:mm:ss");
 
@@ -103,13 +126,15 @@ public class TimeWindowWithUnOrderedSourceByEventTimeSample {
             TimeUnit.SECONDS.sleep(13);
 
             // 日志里面带有事件时间
-            String event = "flink," + System.currentTimeMillis();
+            Long time = System.currentTimeMillis();
+            String event = "flink(" + dateformat.format(time) + ")," + time;
             String event1 = event;
             cxt.collect(event);
 
             // 16s 输出一条数据
             TimeUnit.SECONDS.sleep(3);
-            cxt.collect("flink," + System.currentTimeMillis());
+            time = System.currentTimeMillis();
+            cxt.collect("flink(" + dateformat.format(time) + ")," + time);
 
             // 本该 13s 输出的一条数据，延迟到 19s 的时候才输出
             TimeUnit.SECONDS.sleep(3);
@@ -120,6 +145,19 @@ public class TimeWindowWithUnOrderedSourceByEventTimeSample {
 
         @Override
         public void cancel() {
+        }
+    }
+
+    static class LongSumProcessFunction extends ProcessWindowFunction<Tuple2<String, Long>, Tuple2<String, Integer>, String, TimeWindow> {
+
+        @Override
+        public void process(String key, Context context, Iterable<Tuple2<String, Long>> allElements,
+                            Collector<Tuple2<String, Integer>> out) throws Exception {
+            int count = 0;
+            for (Tuple2<String, Long> e : allElements) {
+                count++;
+            }
+            out.collect(Tuple2.of(key, count));
         }
     }
 }
