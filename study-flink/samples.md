@@ -129,15 +129,18 @@
 >> package: com.yee.study.bigdata.flink.window
 > 
 >> ### 使用自定义窗口处理函数（ProcessWindowFunction） 示例
->> class  : TimeWindowWithProcessWindowFunctionSample
+>> class  : TimeWindowProcessTimeWithProcessWindowFunctionSample
 >> package: com.yee.study.bigdata.flink.window
 > 
->> ### 自定义顺序数据源配合滑动窗口 示例
->> class  : TimeWindowWIthOrderedSourceSample
+>> ### 使用ProcessTime的顺序数据源配合滑动窗口 示例
+>> class  : TimeWindowProcessTimeWithOrderedSourceSample
+>> package: com.yee.study.bigdata.flink.window
+>
+>> ### 使用ProcessTime的乱序数据源配合滑动窗口 示例
+>> class  : TimeWindowProcessTimeWithUnorderedSourceSample
 >> package: com.yee.study.bigdata.flink.window
 > 
-> >
->> ### 自定义乱序数据源配合滑动窗口 示例
->> class  : TimeWindowWithUnOrderedSourceSample
+>> ### 使用EventTime的顺序数据源配合滑动窗口 示例
+>> class  : TimeWindowEventTimeWithOrderedSourceSample
 >> package: com.yee.study.bigdata.flink.window
-> 
+>  

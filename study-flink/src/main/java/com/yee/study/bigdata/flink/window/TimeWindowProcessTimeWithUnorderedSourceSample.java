@@ -15,35 +15,37 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 自定义数据源：顺序输出
- * 第13秒输出2条数据；
- * 第16秒输出 1 条数据；
- * <p>
+ * 使用 ProcessTime 作为处理时间
+ *
  * 需求：每隔5秒计算最近10秒的单词次数
- * <p>
- * 数据源：
- * 17:33:13 输出2条数据
- * 17:33:16 输出1条数据
- * <p>
- * 处理端：
- * 17:33:00  不触发 window 计算
- * 17:33:05  不触发 window 计算
- * 17:33:10  不触发 window 计算
- * 17:33:15  [17:33:05 - 17:33:15] 输出 (flink, 2)
- * 17:33:20  [17:33:10 - 17:33:20] 输出 (flink, 3)
- * 17:33:25  [17:33:15 - 17:33:25] 输出 (flink, 1)
- * 17:33:30  不触发 window 计算
+ *
+ * 数据源（乱序输出）
+ * 17:33:13 输出 1 条数据 event1（ProcessTime=17:33:13）
+ * 17:33:16 输出 1 条数据 event3（ProcessTime=17:33:16）
+ * 17:33:19 输出 1 条数据 event2（ProcessTime=17:33:19）
+ *
+ * event2 本该 17:33:13 输出，延迟到 17:33:19 输出
+ *
+ * 窗口日志：
+ * 17:33:05  window [17:32:55 - 17:33:05] 窗口无数据，不触发计算
+ * 17:33:10  window [17:33:00 - 17:33:10] 窗口无数据，不触发计算
+ * 17:33:15  window [17:33:05 - 17:33:15] 包含 1 条数据（event1），输出 (flink, 1)
+ * 17:33:20  window [17:33:10 - 17:33:20] 包含 3 条数据（event1、event2、event3），输出 (flink, 3)
+ * 17:33:25  window [17:33:15 - 17:33:25] 包含 2 条数据（event2、event3），输出 (flink, 2)
+ * 17:33:30  window [17:33:20 - 17:33:30] 窗口无数据，不触发计算
+ *
+ * 其中event2 本该只应该出现在 window [17:33:10 - 17:33:20]，而用 ProcessTime 则无法避免乱序数据造成的窗口数据的异常
  *
  * @author Roger.Yi
  */
-public class TimeWindowWithOrderedSourceSample {
+public class TimeWindowProcessTimeWithUnorderedSourceSample {
 
     public static void main(String[] args) throws Exception {
         // Env
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // Source
-        DataStreamSource<String> source = env.addSource(new OrderedSource());
+        DataStreamSource<String> source = env.addSource(new UnOrderedSource());
 
         // Operator
         SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
@@ -72,7 +74,7 @@ public class TimeWindowWithOrderedSourceSample {
      * 1、在第 13s 的时候，输出两条数据
      * 2、在第 16s 的时候，输出一条数据
      */
-    public static class OrderedSource implements SourceFunction<String> {
+    public static class UnOrderedSource implements SourceFunction<String> {
 
         private FastDateFormat dateformat = FastDateFormat.getInstance("HH:mm:ss");
 
@@ -87,14 +89,18 @@ public class TimeWindowWithOrderedSourceSample {
 
             System.out.println("当前时间：" + dateformat.format(System.currentTimeMillis()));
 
-            // 第 13s 输出两条数据
+            // 13s 输出一条数据
             TimeUnit.SECONDS.sleep(13);
-            cxt.collect("flink");
-            cxt.collect("flink");
+            String log = "flink";
+            cxt.collect(log);
 
-            // TODO_MA 马中华 注释： 16s 输出一条数据  :  20:53:26
+            // 16s 输出一条数据
             TimeUnit.SECONDS.sleep(3);
             cxt.collect("flink");
+
+            // 本该 13s 输出的一条数据延迟到 19s 的时候才输出
+            TimeUnit.SECONDS.sleep(3);
+            cxt.collect(log);
 
             TimeUnit.SECONDS.sleep(30000000);
         }

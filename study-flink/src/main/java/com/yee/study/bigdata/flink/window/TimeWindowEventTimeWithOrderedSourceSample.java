@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Roger.Yi
  */
-public class TimeWindowWithEventTimeSample {
+public class TimeWindowEventTimeWithOrderedSourceSample {
 
     public static void main(String[] args) throws Exception {
         // Env

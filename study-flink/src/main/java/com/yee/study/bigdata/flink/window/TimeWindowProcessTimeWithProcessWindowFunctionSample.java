@@ -18,7 +18,7 @@ import java.util.Arrays;
  *
  * @author Roger.Yi
  */
-public class TimeWindowWithProcessWindowFunctionSample {
+public class TimeWindowProcessTimeWithProcessWindowFunctionSample {
 
     public static void main(String[] args) throws Exception {
         // Env
