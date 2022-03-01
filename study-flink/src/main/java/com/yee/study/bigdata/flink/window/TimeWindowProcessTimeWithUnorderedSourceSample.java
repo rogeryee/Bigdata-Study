@@ -70,9 +70,10 @@ public class TimeWindowProcessTimeWithUnorderedSourceSample {
     }
 
     /**
-     * 注释： 自定义的顺序 source
-     * 1、在第 13s 的时候，输出两条数据
-     * 2、在第 16s 的时候，输出一条数据
+     * 注释： 自定义的乱序 source
+     * 1、在第 13s 的时候，输出1条数据
+     * 2、在第 16s 的时候，输出1条数据
+     * 3、在第 19s 的时候，输出1条数据（本该在13s输出）
      */
     public static class UnOrderedSource implements SourceFunction<String> {
 

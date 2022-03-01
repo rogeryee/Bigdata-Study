@@ -1,5 +1,6 @@
 package com.yee.study.bigdata.flink.window;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -11,6 +12,7 @@ import org.apache.flink.util.Collector;
  *
  * @author Roger.Yi
  */
+@Slf4j
 public class MyEventSumProcessFunction extends ProcessWindowFunction<MyEvent, Tuple2<String, Integer>, String, TimeWindow> {
 
     private FastDateFormat dateFormat = FastDateFormat.getInstance("HH:mm:ss");
@@ -26,6 +28,8 @@ public class MyEventSumProcessFunction extends ProcessWindowFunction<MyEvent, Tu
 
         String winStart = dateFormat.format(context.window().getStart());
         String winEnd = dateFormat.format(context.window().getEnd());
-        System.out.println("Window[" + winStart + " - " + winEnd + "] triggered, out=(" + key + ", " + count + ")");
+        String processTime = dateFormat.format(context.currentProcessingTime());
+        String currentTime = dateFormat.format(System.currentTimeMillis());
+        log.info(currentTime + ": processTime = " + processTime + " Window[" + winStart + " - " + winEnd + "] triggered, out=(" + key + ", " + count + "), events=" + allElements);
     }
 }

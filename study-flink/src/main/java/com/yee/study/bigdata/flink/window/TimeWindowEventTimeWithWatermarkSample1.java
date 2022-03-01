@@ -1,6 +1,7 @@
 package com.yee.study.bigdata.flink.window;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.flink.api.common.eventtime.TimestampAssigner;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.common.eventtime.WatermarkGenerator;
 import org.apache.flink.api.common.eventtime.WatermarkOutput;
@@ -15,28 +16,34 @@ import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 使用 EventTime 作为处理时间
+ * 使用 EventTime 作为处理时间（基于当前时间设置 watermark）
  * <p>
  * 需求：每隔5秒计算最近10秒的单词次数
  * <p>
- * 数据源（顺序输出）
- * 11:17:43 输出 1 条数据 event1（EventTime=11:17:43, ProcessTime=11:17:43）
- * 11:17:46 输出 1 条数据 event2（EventTime=11:17:43, ProcessTime=11:17:43）
- * 11:17:49 输出 1 条数据 event3（EventTime=11:17:43, ProcessTime=11:17:43）
+ * 数据源（乱序输出）
+ * 17:41:43 输出 1 条数据 event1（EventTime=17:41:43）
+ * 17:41:46 输出 1 条数据 event4（EventTime=17:41:46）
+ * 17:41:49 输出 1 条数据 event2（EventTime=17:41:43）
+ * 17:41:51 输出 1 条数据 event3（EventTime=17:41:43）
  * <p>
- * 第二条数据虽然是 11:17:46 产生的，但是用于窗口统计则应该使用 11:17:43 （EventTime）
+ * event2 本该 17:41:43 输出，延迟到 17:41:49 输出
+ * event3 本该 17:41:43 输出，延迟到 17:41:51 输出
  * <p>
  * 窗口日志：
- * 11:17:35  window [11:17:25 - 11:17:35] 窗口无数据，不触发计算
- * 11:17:40  window [11:17:30 - 11:17:40] 窗口无数据，不触发计算
- * 11:17:45  window [11:17:35 - 11:17:45] 包含 1 条数据（event1），输出 (flink, 1)
- * 11:17:50  window [11:17:40 - 11:17:50] 包含 3 条数据（event1、event2、event3），输出 (flink, 3)
- * 11:17:55  window [11:17:45 - 11:17:55] 包含 1 条数据（只包含event3，不包含event2，因为event2的 EventTime不在当前窗口），输出 (flink, 1)
- * 11:18:00  window [11:17:50 - 11:18:00] 窗口无数据，不触发计算
+ * 17:41:40  window [17:41:25 - 17:41:35] 窗口无数据，不触发计算
+ * 17:41:45  window [17:41:30 - 17:41:40] 窗口无数据，不触发计算
+ * 17:41:50  window [17:41:35 - 17:41:45] 包含 2 条数据（event1，event2），输出 (flink, 2)
+ * 17:41:55  window [17:41:40 - 17:41:50] 包含 4 条数据（event1、event2、event3、event4），输出 (flink, 4)
+ * 17:42:00  window [17:41:45 - 17:41:55] 包含 1 条数据（event4），输出 (flink, 1)
+ * 17:42:05  window [17:41:50 - 17:42:00] 窗口无数据，不触发计算
+ * <p>
+ * 1. 每个窗口都会接受5s的延迟
+ * 2. event2 会落在正确的窗口内
+ * 3. event3 不能落在窗口 [17:41:35 - 17:41:45] 是因为它已经超过的5s的延迟
  *
  * @author Roger.Yi
  */
-public class TimeWindowEventTimeWithOrderedSourceSample {
+public class TimeWindowEventTimeWithWatermarkSample1 {
 
     public static void main(String[] args) throws Exception {
         // Env
@@ -67,20 +74,21 @@ public class TimeWindowEventTimeWithOrderedSourceSample {
 
         @Override
         public void onEvent(MyEvent event, long eventTimestamp, WatermarkOutput output) {
-            System.out.println("onEvent: event=" + event + ", eventTimestamp=" + eventTimestamp);
         }
 
-        // 不考虑延迟数据（使用当前时间作为 watermark）
+        // 支持延迟5s的数据
         @Override
         public void onPeriodicEmit(WatermarkOutput output) {
-            output.emitWatermark(new Watermark(System.currentTimeMillis()));
+            output.emitWatermark(new Watermark(System.currentTimeMillis() - 5000));
         }
     }
 
     /**
-     * 注释： 自定义的顺序 source
-     * 1、在第 13s 的时候，输出两条数据
-     * 2、在第 16s 的时候，输出一条数据
+     * 注释： 自定义的乱序 source
+     * 1、在第 13s 的时候，输出1条数据
+     * 2、在第 16s 的时候，输出1条数据
+     * 3、在第 19s 的时候，输出1条数据（本该在第13s输出）
+     * 4、在第 21s 的时候，输出1条数据（本该在第13s输出）
      */
     static class UnOrderedSource implements SourceFunction<MyEvent> {
 
@@ -104,18 +112,21 @@ public class TimeWindowEventTimeWithOrderedSourceSample {
             cxt.collect(event1);
 
             MyEvent event2 = new MyEvent("flink-2(" + dateformat.format(time) + "),", time, "flink");
-            TimeUnit.SECONDS.sleep(3);
-            cxt.collect(event2);
+            MyEvent event3 = new MyEvent("flink-3(" + dateformat.format(time) + "),", time, "flink");
 
             // 16s 输出一条数据
             TimeUnit.SECONDS.sleep(3);
             time = System.currentTimeMillis();
-            MyEvent event3 = new MyEvent("flink-3(" + dateformat.format(time) + "),", time, "flink");
-            cxt.collect(event3);
+            MyEvent event4 = new MyEvent("flink-4(" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event4);
 
             // 本该 13s 输出的一条数据，延迟到 19s 的时候才输出
-//            TimeUnit.SECONDS.sleep(3);
-//            cxt.collect(event2);
+            TimeUnit.SECONDS.sleep(3);
+            cxt.collect(event2);
+
+            // 本该 13s 输出的一条数据，延迟到 21s 的时候才输出
+            TimeUnit.SECONDS.sleep(2);
+            cxt.collect(event3);
 
             TimeUnit.SECONDS.sleep(30000000);
         }
