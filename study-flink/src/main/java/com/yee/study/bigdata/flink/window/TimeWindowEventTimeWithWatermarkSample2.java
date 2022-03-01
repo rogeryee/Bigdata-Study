@@ -2,6 +2,7 @@ package com.yee.study.bigdata.flink.window;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
+import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.eventtime.TimestampAssigner;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.common.eventtime.WatermarkGenerator;
@@ -21,26 +22,25 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 需求：每隔5秒计算最近10秒的单词次数
  * <p>
- * 数据源（乱序输出）
- * 17:41:43 输出 1 条数据 event1（EventTime=17:41:43）
- * 17:41:46 输出 1 条数据 event4（EventTime=17:41:46）
- * 17:41:49 输出 1 条数据 event2（EventTime=17:41:43）
- * 17:41:51 输出 1 条数据 event3（EventTime=17:41:43）
- * <p>
- * event2 本该 17:41:43 输出，延迟到 17:41:49 输出
- * event3 本该 17:41:43 输出，延迟到 17:41:51 输出
- * <p>
- * 窗口日志：
- * 17:41:40  window [17:41:25 - 17:41:35] 窗口无数据，不触发计算
- * 17:41:45  window [17:41:30 - 17:41:40] 窗口无数据，不触发计算
- * 17:41:50  window [17:41:35 - 17:41:45] 包含 2 条数据（event1，event2），输出 (flink, 2)
- * 17:41:55  window [17:41:40 - 17:41:50] 包含 4 条数据（event1、event2、event3、event4），输出 (flink, 4)
- * 17:42:00  window [17:41:45 - 17:41:55] 包含 1 条数据（event4），输出 (flink, 1)
- * 17:42:05  window [17:41:50 - 17:42:00] 窗口无数据，不触发计算
- * <p>
- * 1. 每个窗口都会接受5s的延迟
- * 2. event2 会落在正确的窗口内
- * 3. event3 不能落在窗口 [17:41:35 - 17:41:45] 是因为它已经超过的5s的延迟
+ * 数据源（顺序输出，每隔4秒输出一条数据）
+ * watermark允许5秒延迟
+ *
+ * 16:23:00 输出 1 条数据 event1（flink-1 eventTime=16:23:00） - watermark(16:22:55)
+ * 16:23:04 输出 1 条数据 event2（flink-2 eventTime=16:23:04） - watermark(16:22:59)
+ * 16:23:08 输出 1 条数据 event3（flink-3 eventTime=16:23:08） - watermark(16:23:03)
+ * 16:23:12 输出 1 条数据 event4（flink-4 eventTime=16:23:12） - watermark(16:23:07) > 16:23:05
+ * 16:23:12 Window[16:22:55 - 16:23:05] 触发，输出 (flink,2)，包含2条数据（event1、event2）
+ *
+ * 16:23:16 输出 1 条数据 event5（flink-5 eventTime=16:23:16） - watermark(16:23:11) > 16:23:10
+ * 16:23:16 Window[16:23:00 - 16:23:10] 触发，输出 (flink,3)，包含2条数据（event1、event2、event3）
+ *
+ * 16:23:20 输出 1 条数据 event6（flink-6 eventTime=16:23:20 - watermark(16:23:15) >= 16:23:15
+ * 16:23:20 Window[16:23:05 - 16:23:15] 触发，输出 (flink,2)，包含2条数据（event3、event4）
+ *
+ * 16:23:24 输出 1 条数据 event7（flink-7 eventTime=16:23:24） - watermark(16:23:19)
+ *
+ * 16:23:28 输出 1 条数据 event8（flink-8 eventTime=16:23:28 - watermark(16:23:23) > 16:23:20
+ * 16:23:28 Window[16:23:10 - 16:23:20] 触发，输出 (flink,2)，包含2条数据（event4、event5）
  *
  * @author Roger.Yi
  */
@@ -51,6 +51,7 @@ public class TimeWindowEventTimeWithWatermarkSample2 {
         // Env
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
+        env.getConfig().setAutoWatermarkInterval(2000); // 设置每 2s 调用一次 onPeriodicEmit 方法
 
         // Source
         DataStreamSource<MyEvent> source = env.addSource(new UnOrderedSource()).setParallelism(1);
@@ -123,7 +124,7 @@ public class TimeWindowEventTimeWithWatermarkSample2 {
                 Long time = System.currentTimeMillis();
                 MyEvent event = new MyEvent("flink-" + (i++) + " (" + dateformat.format(time) + "),", time, "flink");
                 cxt.collect(event);
-                TimeUnit.SECONDS.sleep(3);
+                TimeUnit.SECONDS.sleep(4);
             }
         }
 
