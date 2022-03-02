@@ -2,8 +2,6 @@ package com.yee.study.bigdata.flink.window;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.eventtime.TimestampAssigner;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.common.eventtime.WatermarkGenerator;
 import org.apache.flink.api.common.eventtime.WatermarkOutput;
@@ -22,47 +20,43 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 需求：每隔5秒计算最近10秒的单词次数
  * <p>
- * 数据源（顺序输出，每隔4秒输出一条数据）
- * watermark允许5秒延迟
- * <p>
- * 16:23:00 输出 1 条数据 event1（flink-1 eventTime=16:23:00）
- * 16:23:00 watermark(16:22:55)
- * <p>
- * 16:23:04 输出 1 条数据 event2（flink-2 eventTime=16:23:04）
- * 16:23:04 watermark(16:22:59)
- * <p>
- * 16:23:08 输出 1 条数据 event3（flink-3 eventTime=16:23:08）
- * 16:23:08 watermark(16:23:03)
- * <p>
- * 16:23:12 输出 1 条数据 event4（flink-4 eventTime=16:23:12）
- * 16:23:12 watermark(16:23:07)
- * 16:23:12 Window[16:22:55 - 16:23:05] 触发(watermark > 16:23:05)，输出 (flink,2)，包含2条数据（event1、event2）
- * <p>
- * 16:23:16 输出 1 条数据 event5（flink-5 eventTime=16:23:16）
- * 16:23:16 watermark(16:23:11)
- * 16:23:16 Window[16:23:00 - 16:23:10] 触发(watermark > 16:23:10)，输出 (flink,3)，包含2条数据（event1、event2、event3）
- * <p>
- * 16:23:20 输出 1 条数据 event6（flink-6 eventTime=16:23:20
- * 16:23:20 watermark(16:23:15)
- * 16:23:20 Window[16:23:05 - 16:23:15] 触发(watermark > 16:23:15)，输出 (flink,2)，包含2条数据（event3、event4）
- * <p>
- * 16:23:24 输出 1 条数据 event7（flink-7 eventTime=16:23:24）
- * 16:23:24 watermark(16:23:19)
- * <p>
- * 16:23:28 输出 1 条数据 event8（flink-8 eventTime=16:23:28
- * 16:23:28 watermark(16:23:23)
- * 16:23:28 Window[16:23:10 - 16:23:20] 触发(watermark > 16:23:20)，输出 (flink,2)，包含2条数据（event4、event5）
+ * 数据源（乱序输出，每隔3秒输出一条数据）
+ * watermark允许5秒延迟，并增加了 allowedLateness=3秒
+ *
+ * 10:42:10 输出 1 条数据 event1（flink-1 eventTime=10:42:10）
+ * 10:42:10 watermark(10:42:05)
+ *
+ * 10:42:22 输出 2 条数据 event2（flink-2 eventTime=10:42:10）、event5（flink-5 eventTime=10:42:22）
+ * 10:42:22 watermark(10:42:17)
+ * 10:42:22 Window[10:42:05 - 10:42:15] 触发(watermark > 10:42:15)，输出 (flink,2)，包含2条数据（event1、event2）
+ *
+ * 10:42:25 输出 2 条数据 event3（flink-3 eventTime=10:42:10）、event6（flink-6 eventTime=10:42:25）
+ * 10:42:25 Window[10:42:05 - 10:42:15] 触发(watermark + allowedLateness  > 10:42:15)，输出 (flink,3)，包含3条数据（event1、event2、event3）
+ * 10:42:25 watermark(10:42:20)
+ * 10:42:25 Window[10:42:10 - 10:42:20] 触发(watermark > 10:42:20)，输出 (flink,3)，包含3条数据（event1、event2、event3）
+ *
+ * 10:42:28 输出 2 条数据 event4（flink-4 eventTime=10:42:10）、event7（flink-7 eventTime=10:42:28）
+ * 10:42:28 Window[10:42:10 - 10:42:20] 触发(watermark + allowedLateness  > 10:42:20)，输出 (flink,4)，包含4条数据（event1、event2、event3、event4）
+ * 10:42:28 watermark(10:42:23)
+ *
+ * 10:42:31 输出 1 条数据 event1（flink-8 eventTime=10:42:31）
+ * 10:42:31 watermark(10:42:26)
+ *
+ * 注：
+ * 1). event2 本该在 10:42:10 输出，但是延迟到 10:42:22 才输出
+ * 2). event3 本该在 10:42:10 输出，但是延迟到 10:42:25 才输出
+ * 3). event4 本该在 10:42:10 输出，但是延迟到 10:42:28 才输出
  *
  * @author Roger.Yi
  */
 @Slf4j
-public class TimeWindowEventTimeWithWatermarkSample2 {
+public class TimeWindowEventTimeWithWatermarkSample3 {
 
     public static void main(String[] args) throws Exception {
         // Env
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        env.getConfig().setAutoWatermarkInterval(2000); // 设置每 2s 调用一次 onPeriodicEmit 方法
+//        env.getConfig().setAutoWatermarkInterval(2000); // 设置每 2s 调用一次 onPeriodicEmit 方法
 
         // Source
         DataStreamSource<MyEvent> source = env.addSource(new UnOrderedSource()).setParallelism(1);
@@ -76,6 +70,7 @@ public class TimeWindowEventTimeWithWatermarkSample2 {
               .keyBy(event -> event.getType())
               // 每隔 5s 计算过去 10s内 数据的结果。用的是 EventTime
               .window(SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5)))
+              .allowedLateness(Time.seconds(3))
               .process(new MyEventSumProcessFunction())
               .print().setParallelism(1);
 
@@ -130,13 +125,45 @@ public class TimeWindowEventTimeWithWatermarkSample2 {
 
             log.info("当前时间：" + dateformat.format(System.currentTimeMillis()));
 
-            int i = 1;
-            while (true) {
-                Long time = System.currentTimeMillis();
-                MyEvent event = new MyEvent("flink-" + (i++) + " (" + dateformat.format(time) + "),", time, "flink");
-                cxt.collect(event);
-                TimeUnit.SECONDS.sleep(4);
-            }
+            Long time = System.currentTimeMillis();
+            MyEvent event1 = new MyEvent("flink-1 (" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event1);
+            TimeUnit.SECONDS.sleep(3);
+
+            MyEvent event2 = new MyEvent("flink-2 (" + dateformat.format(time) + "),", time, "flink");
+            TimeUnit.SECONDS.sleep(3);
+
+            MyEvent event3 = new MyEvent("flink-3 (" + dateformat.format(time) + "),", time, "flink");
+            TimeUnit.SECONDS.sleep(3);
+
+            MyEvent event4 = new MyEvent("flink-4 (" + dateformat.format(time) + "),", time, "flink");
+            TimeUnit.SECONDS.sleep(3);
+
+            time = System.currentTimeMillis();
+            MyEvent event5 = new MyEvent("flink-5 (" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event5);
+            cxt.collect(event2);
+            TimeUnit.SECONDS.sleep(3);
+
+            time = System.currentTimeMillis();
+            MyEvent event6 = new MyEvent("flink-6 (" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event6);
+            cxt.collect(event3);
+
+            TimeUnit.SECONDS.sleep(3);
+
+            time = System.currentTimeMillis();
+            MyEvent event7 = new MyEvent("flink-7 (" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event7);
+            cxt.collect(event4);
+
+            TimeUnit.SECONDS.sleep(3);
+
+            time = System.currentTimeMillis();
+            MyEvent event8 = new MyEvent("flink-8 (" + dateformat.format(time) + "),", time, "flink");
+            cxt.collect(event8);
+
+            TimeUnit.SECONDS.sleep(300000);
         }
 
         @Override
