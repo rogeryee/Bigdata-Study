@@ -1,4 +1,4 @@
-package com.yee.study.bigdata.flink.window;
+package com.yee.study.bigdata.flink.window.support;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.api.java.tuple.Tuple2;

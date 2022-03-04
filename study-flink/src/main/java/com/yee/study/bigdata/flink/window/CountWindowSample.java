@@ -1,13 +1,10 @@
 package com.yee.study.bigdata.flink.window;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
+import com.yee.study.bigdata.flink.window.support.WordSplitFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Collector;
-
-import java.util.Arrays;
 
 /**
  * CountWindow 示例
@@ -27,13 +24,7 @@ public class CountWindowSample {
 
         // Operator
         SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
-                .flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
-                    @Override
-                    public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {
-                        String[] words = value.split(",");
-                        Arrays.stream(words).map(word -> Tuple2.of(word, 1)).forEach(out::collect);
-                    }
-                })
+                .flatMap(new WordSplitFunction())
                 .keyBy(tuple -> tuple.f0)
                 .countWindow(3)
                 .sum(1);

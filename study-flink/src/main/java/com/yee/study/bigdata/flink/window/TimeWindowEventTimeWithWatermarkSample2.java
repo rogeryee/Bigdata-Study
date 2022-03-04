@@ -1,9 +1,10 @@
 package com.yee.study.bigdata.flink.window;
 
+import com.yee.study.bigdata.flink.window.support.MyEvent;
+import com.yee.study.bigdata.flink.window.support.MyEventSumProcessFunction;
+import com.yee.study.bigdata.flink.window.support.MyEventTimestampExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.eventtime.TimestampAssigner;
 import org.apache.flink.api.common.eventtime.Watermark;
 import org.apache.flink.api.common.eventtime.WatermarkGenerator;
 import org.apache.flink.api.common.eventtime.WatermarkOutput;

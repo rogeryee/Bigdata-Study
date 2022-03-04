@@ -1,5 +1,6 @@
 package com.yee.study.bigdata.flink.window;
 
+import com.yee.study.bigdata.flink.window.support.WordSplitFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -29,13 +30,7 @@ public class SessionWindowSample {
 
         // Operator
         SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
-                .flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
-                    @Override
-                    public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {
-                        String[] words = value.split(",");
-                        Arrays.stream(words).map(word -> Tuple2.of(word, 1)).forEach(out::collect);
-                    }
-                })
+                .flatMap(new WordSplitFunction())
                 .keyBy(tuple -> tuple.f0)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(3)))
                 .sum(1);

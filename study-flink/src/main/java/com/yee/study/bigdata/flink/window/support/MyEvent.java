@@ -1,4 +1,4 @@
-package com.yee.study.bigdata.flink.window;
+package com.yee.study.bigdata.flink.window.support;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

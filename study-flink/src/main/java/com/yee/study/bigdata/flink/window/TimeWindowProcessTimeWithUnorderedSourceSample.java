@@ -1,5 +1,7 @@
 package com.yee.study.bigdata.flink.window;
 
+import com.yee.study.bigdata.flink.window.support.SumProcessFunction;
+import com.yee.study.bigdata.flink.window.support.WordSplitFunction;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,13 +51,7 @@ public class TimeWindowProcessTimeWithUnorderedSourceSample {
 
         // Operator
         SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
-                .flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
-                    @Override
-                    public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {
-                        String[] words = value.split(",");
-                        Arrays.stream(words).map(word -> Tuple2.of(word, 1)).forEach(out::collect);
-                    }
-                })
+                .flatMap(new WordSplitFunction())
                 .keyBy(tuple -> tuple.f0)
                 // 每隔 5s 计算过去 10s内 数据的结果。用的是 ProcessingTime
                 .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time

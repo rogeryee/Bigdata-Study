@@ -1,25 +1,21 @@
 package com.yee.study.bigdata.flink.window;
 
 import com.yee.study.bigdata.flink.window.support.WordSplitFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.util.Collector;
-
-import java.util.Arrays;
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
+import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 
 /**
- * 需求：每隔 5秒 计算最近 10秒 的单词次数
- *
- * 滑动窗口
+ * Global Window 示例
+ * <p>
+ * 需求： 单词每出现三次统计一次
  *
  * @author Roger.Yi
  */
-public class TimeWindowSample {
+public class GlobalWindowSample {
 
     public static void main(String[] args) throws Exception {
         // Env
@@ -32,8 +28,8 @@ public class TimeWindowSample {
         SingleOutputStreamOperator<Tuple2<String, Integer>> ds = source
                 .flatMap(new WordSplitFunction())
                 .keyBy(tuple -> tuple.f0)
-                // 每隔 5s 计算过去 10s内 数据的结果。用的是 ProcessingTime
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time.seconds(5)))
+                .window(GlobalWindows.create())
+                .trigger(CountTrigger.of(3))
                 .sum(1);
 
         // Sink
