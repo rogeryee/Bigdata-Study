@@ -1,16 +1,12 @@
 package com.yee.study.bigdata.flink.window;
 
 import com.yee.study.bigdata.flink.window.support.WordSplitFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.util.Collector;
-
-import java.util.Arrays;
 
 /**
  * 需求：每隔 5秒 计算最近 10秒 的单词次数
