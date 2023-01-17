@@ -1,0 +1,7 @@
+1,Andy,40
+2,Gigi,25
+3,Maggie,20
+4,Annie,18
+5,Amanda,24
+6,Matei,30
+7,Martin,35
