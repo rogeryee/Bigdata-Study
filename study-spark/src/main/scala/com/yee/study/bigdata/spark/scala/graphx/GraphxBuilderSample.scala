@@ -12,6 +12,17 @@ import org.apache.spark.sql.SparkSession
  */
 object GraphxBuilderSample {
 
+  /**
+   * * 设置master的两种方式：
+   * 1. 设置运行变量
+   * a) Run > Edit Configurations... > Application > "My project name" > Configuraton
+   * b) VM options: -Dspark.master=local
+   *
+   * 2. 配置master属性
+   * val spark = SparkSession.builder().appName("xxx").master("local[*]").getOrCreate()
+   *
+   * @param args
+   */
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder()
