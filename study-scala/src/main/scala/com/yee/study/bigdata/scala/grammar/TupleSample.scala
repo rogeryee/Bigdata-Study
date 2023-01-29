@@ -1,9 +1,9 @@
-package com.yee.study.bigdata.scala.kuaixue.chapter4
+package com.yee.study.bigdata.scala.grammar
 
 import com.yee.study.bigdata.scala.util.PrintUtil._print
 
 /**
- *
+ * 元组示例
  * @author Roger.Yi
  */
 object TupleSample {
@@ -26,6 +26,6 @@ object TupleSample {
     val pairs = symbols.zip(counts)
     _print(pairs.toList)
 
-    for((s, n) <- pairs) print(s * n)
+    for ((s, n) <- pairs) print(s * n)
   }
 }

@@ -1,4 +1,4 @@
-package com.yee.study.bigdata.scala.kuaixue.chapter5
+package com.yee.study.bigdata.scala.grammar
 
 import com.yee.study.bigdata.scala.util.PrintUtil._print
 
@@ -46,11 +46,12 @@ object ClassSample {
     }
   }
 
-  object DataLevel extends Enumeration{
+  object DataLevel extends Enumeration {
     val Ods = Value("ods")
     val Dwd = Value("dwd")
     val Dwt = Value("dwt")
     val Dwa = Value("dwa")
     val App = Value("app")
   }
+
 }

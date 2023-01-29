@@ -1,15 +1,16 @@
-package com.yee.study.bigdata.scala.kuaixue.chapter2
+package com.yee.study.bigdata.scala.grammar
 
 /**
+ * 控制语法示例
  *
  * @author Roger.Yi
  */
-object Control {
+object ControlSample {
 
   def main(args: Array[String]): Unit = {
     val x = 10
-    val s = if(x > 0) 1 else -1
-    val s2 = if(x > 0) 1 else () // () 就是 Unit
+    val s = if (x > 0) 1 else -1
+    val s2 = if (x > 0) 1 else () // () 就是 Unit
 
     var n = 6
     var r = 1
@@ -27,7 +28,7 @@ object Control {
     println()
 
     // Vector(H, e, l, l, o, I, f, m, m, p)
-    val vector = for(i <- 0 to 1; c <- "Hello") yield (c + i).toChar
+    val vector = for (i <- 0 to 1; c <- "Hello") yield (c + i).toChar
     println(vector)
   }
 }
