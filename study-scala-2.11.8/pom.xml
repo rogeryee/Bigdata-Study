@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yee.study</groupId>
-    <artifactId>bigdata-scala</artifactId>
-    <name>Spark Study Module</name>
+    <artifactId>bigdata-scala-2.11.8</artifactId>
+    <name>Spark Study Module (2.11.8)</name>
 
     <parent>
         <groupId>com.yee.study</groupId>

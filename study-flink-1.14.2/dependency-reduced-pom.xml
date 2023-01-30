@@ -7,7 +7,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.yee.study</groupId>
-  <artifactId>bigdata-flink</artifactId>
+  <artifactId>bigdata-flink-1.14.2</artifactId>
   <name>Flink Study Module</name>
   <build>
     <plugins>

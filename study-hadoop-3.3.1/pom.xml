@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yee.study</groupId>
-    <artifactId>bigdata-hadoop</artifactId>
-    <name>Hadoop Study Module</name>
+    <artifactId>bigdata-hadoop-3.3.1</artifactId>
+    <name>Hadoop Study Module (3.3.1)</name>
 
     <parent>
         <groupId>com.yee.study</groupId>

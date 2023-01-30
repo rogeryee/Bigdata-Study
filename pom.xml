@@ -11,11 +11,12 @@
     <version>1.0-SNAPSHOT</version>
 
     <modules>
-        <module>study-scala</module>
-        <module>study-zookeeper</module>
-        <module>study-hadoop</module>
+        <module>study-scala-2.11.8</module>
+        <module>study-zookeeper-3.6.3</module>
+        <module>study-hadoop-3.3.1</module>
         <module>study-flink-1.14.2</module>
-        <module>study-spark</module>
+        <module>study-spark-2.4_2.11.8</module>
+        <module>study-kafka-3.1.0</module>
     </modules>
 
     <properties>
@@ -27,7 +28,7 @@
         <deps.hbase.client.version>1.2.3</deps.hbase.client.version>
         <deps.junit.jupiter.version>5.4.2</deps.junit.jupiter.version>
         <deps.junit.version>4.12</deps.junit.version>
-        <deps.kafka.version>2.0.0</deps.kafka.version>
+        <deps.kafka.version>3.1.0</deps.kafka.version>
         <deps.logback.version>1.1.7</deps.logback.version>
         <deps.logstash.version>5.1</deps.logstash.version>
         <deps.lombok.version>1.16.22</deps.lombok.version>
