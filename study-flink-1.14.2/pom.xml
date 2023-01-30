@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.yee.study</groupId>
-    <artifactId>bigdata-flink</artifactId>
+    <artifactId>bigdata-flink-1.14.2</artifactId>
     <name>Flink Study Module</name>
     <packaging>jar</packaging>
 
@@ -62,6 +62,12 @@
 
         <dependency>
             <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-elasticsearch6_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
             <artifactId>flink-runtime-web_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
@@ -106,7 +112,6 @@
 <!--                    </archive>-->
 <!--                </configuration>-->
 <!--            </plugin>-->
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
