@@ -8,27 +8,22 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 
 /**
- * Flink 消费kafka 以及 Offset 示例
+ * Flink 写入 ElasticSearch 示例
  * <p>
  * Flink 1.14 后，已经摈弃了 FlinkKafkaConsumer/FlinkKafkaProducer，改为了 KafkaSource 和 KafkaSink
  * <p>
  * 1. kafka中创建 test-upstream 主题
  * ./kafka-topics.sh --create --topic test-upstream --bootstrap-server localhost:9092
  * <p>
- * 2. kafka中创建 test-downstream 主题
- * ./kafka-topics.sh --create --topic test-downstream --bootstrap-server localhost:9092
- * <p>
  * 3. 创建 producer 向 test-upstream 中发送消息
  * ./kafka-console-producer.sh --topic test-upstream --bootstrap-server localhost:9092
- * <p>
- * 4. 创建 consumer 向 test-downstream 中发送消息
- * ./kafka-console-consumer.sh --topic test-downstream --from-beginning --bootstrap-server localhost:9092
  *
  * @author Roger.Yi
  */
-public class KafkaConsumerSample {
+public class ElasticsearchSample {
 
     public static void main(String[] args) throws Exception {
         // 获取执行环境对象 StreamExecutionEnvironment
@@ -40,9 +35,9 @@ public class KafkaConsumerSample {
                 .setTopics("test-events")
                 .setGroupId("flink")
                 .setBootstrapServers("localhost:9092")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                 .setProperty("enable.auto.commit", "false")
-                .setProperty("auto.commit.interval.ms", "1000")
+                .setProperty("auto.commit.interval.ms", "2000")
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
@@ -58,6 +53,8 @@ public class KafkaConsumerSample {
 
         // 输出到控制台
         resultDS.print();
+//        resultDS.sinkTo(new Elasticsearch6SinkBuilder<String>);
+
         env.execute("Kafka Sample");
     }
 }

@@ -20,7 +20,7 @@ public class ConsumerSample {
 
     public static void main(String[] args) throws InterruptedException {
         // 不确认消息offset
-        consumerNoOffsetCommit();
+//        consumerNoOffsetCommit();
 
         // 确认消息offset
         consumerWithOffsetCommit();

@@ -11,6 +11,7 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 
 /**
  * Flink 消费kafka以及生产数据到kafka 示例
@@ -28,6 +29,23 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
  * <p>
  * 4. 创建 consumer 向 test-downstream 中发送消息
  * ./kafka-console-consumer.sh --topic test-downstream --from-beginning --bootstrap-server localhost:9092
+ * <p>
+ * 注意：
+ * Flink中通过 setStartingOffsets 来设置 offset 的获取方式
+ * 1） Start from committed offset of the consuming group, without reset strategy
+ * .setStartingOffsets(OffsetsInitializer.committedOffsets())
+ * <p>
+ * 2）Start from committed offset, also use EARLIEST as reset strategy if committed offset doesn't exist
+ * .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+ * <p>
+ * 3）Start from the first record whose timestamp is greater than or equals a timestamp (milliseconds)
+ * .setStartingOffsets(OffsetsInitializer.timestamp(1657256176000L))
+ * <p>
+ * 4）Start from earliest offset
+ * .setStartingOffsets(OffsetsInitializer.earliest())
+ * <p>
+ * 5）Start from latest offset
+ * .setStartingOffsets(OffsetsInitializer.latest())
  *
  * @author Roger.Yi
  */
@@ -43,7 +61,9 @@ public class KafkaSample {
                 .setTopics("test-upstream")
                 .setGroupId("flink")
                 .setBootstrapServers("localhost:9092")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setProperty("enable.auto.commit", "true")
+                .setProperty("auto.commit.interval.ms", "1000")
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
