@@ -118,7 +118,7 @@ public class ElasticsearchSample {
         // finally, build and add the sink to the job's pipeline
         resultDS.addSink(esSinkBuilder.build());
 
-        env.execute("Kafka Sample");
+        env.execute("Elasticsearch Sample");
     }
 }
 

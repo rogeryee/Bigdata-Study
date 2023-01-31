@@ -64,6 +64,13 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-elasticsearch7_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
+            <exclusions>
+                <!-- 避免 java.lang.NoSuchFieldError: EMPTY_BYTE_ARRAY -->
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

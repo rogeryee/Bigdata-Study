@@ -29,7 +29,7 @@
         <deps.junit.jupiter.version>5.4.2</deps.junit.jupiter.version>
         <deps.junit.version>4.12</deps.junit.version>
         <deps.kafka.version>3.1.0</deps.kafka.version>
-        <deps.logback.version>1.1.7</deps.logback.version>
+        <deps.logback.version>1.4.5</deps.logback.version>
         <deps.logstash.version>5.1</deps.logstash.version>
         <deps.lombok.version>1.16.22</deps.lombok.version>
         <deps.mockito.version>2.13.0</deps.mockito.version>
