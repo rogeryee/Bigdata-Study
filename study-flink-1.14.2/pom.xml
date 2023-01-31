@@ -62,7 +62,7 @@
 
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-elasticsearch6_${deps.flink.scala.version}</artifactId>
+            <artifactId>flink-connector-elasticsearch7_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
