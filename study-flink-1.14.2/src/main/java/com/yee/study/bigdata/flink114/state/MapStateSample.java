@@ -37,10 +37,7 @@ public class MapStateSample {
         SingleOutputStreamOperator<Tuple2<Long, Double>> resultDS = sourceDS.keyBy(0)
                 .flatMap(new CountAverageWithMapState());
 
-        // TODO_MA 马中华 注释：
         resultDS.print();
-
-        // TODO_MA 马中华 注释：
         environment.execute("MapStateSample");
     }
 
