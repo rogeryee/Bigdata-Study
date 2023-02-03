@@ -67,6 +67,6 @@ public class BroadcastSample {
 
         result.print();
 
-        env.execute("Broadcast");
+//        env.execute("Broadcast");
     }
 }

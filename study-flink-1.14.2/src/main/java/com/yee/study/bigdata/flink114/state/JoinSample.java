@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -31,25 +32,26 @@ public class JoinSample {
     public static void main(String[] args) throws Exception {
         // ENV
         StreamExecutionEnvironment environment = StreamExecutionEnvironment.getExecutionEnvironment();
-        environment.setParallelism(3);
+        environment.setParallelism(1);
 
         // 模拟两个数据流，每个数据流，都是每隔 0.5s 发送一条数据
         // OrderPrice: String = 123,拖把,30.0
-        DataStreamSource<String> orderPriceDS = environment.addSource(new FileSource("/Users/cntp/MyWork/yee/bigdata-study/study-flink/data/order_price.txt"));
+        DataStreamSource<String> orderPriceDS = environment.addSource(new FileSource("/Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/data/order_price.txt"));
 
         // OrderLocation: String = 123,2021-11-11 10:11:12,江苏
-        DataStreamSource<String> orderLocationDS = environment.addSource(new FileSource("/Users/cntp/MyWork/yee/bigdata-study/study-flink/data/order_location.txt"));
+        DataStreamSource<String> orderLocationDS = environment.addSource(new FileSource("/Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/data/order_location.txt"));
 
         // orderPriceDS 和 orderLocationDS  分别按照 OrderId 分组
-        KeyedStream<OrderPrice, Long> keyedOrderPriceDS = orderPriceDS.map(line -> OrderPrice.deserialize(line))
-                .keyBy(price -> price.getOrderId());
-        KeyedStream<OrderLocation, Long> keyedOrderLocation2DS = orderLocationDS.map(line -> OrderLocation.deserialize(line))
-                .keyBy(location -> location.getOrderId());
+        KeyedStream<OrderPrice, Long> keyedOrderPriceDS = orderPriceDS.map(OrderPrice::deserialize)
+                .keyBy(OrderPrice::getOrderId);
+        KeyedStream<OrderLocation, Long> keyedOrderLocation2DS = orderLocationDS.map(OrderLocation::deserialize)
+                .keyBy(OrderLocation::getOrderId);
 
+        // 注意：这里是keyBy后的操作，所以每一个key都有一个ValueState
         // keyedOrderPriceDS 和 keyedOrderLocation2DS 做 connect 动作
         // 目的是： 通过 state 实现这两个 数据流的 join 效果
         // select a.* , b.* from a join b on a.orderid = b.orderid;
-        keyedOrderPriceDS.connect(keyedOrderLocation2DS).flatMap(new OrderJoinFunction()).print();
+        keyedOrderPriceDS.connect(keyedOrderLocation2DS).flatMap(new OrderJoinFunction());//.print();
 
         // run
         environment.execute("FlinkState_OrderJoin");
