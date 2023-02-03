@@ -30,8 +30,8 @@ public class TimeWindowProcessTimeWithProcessWindowFunctionSample {
                 .flatMap(new WordSplitFunction())
                 .keyBy(tuple -> tuple.f0)
                 // 每隔 5s 计算过去 10s内 数据的结果。用的是 ProcessingTime
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time
-                        .seconds(5)))
+                .window(SlidingProcessingTimeWindows.of(Time.seconds(10),
+                                                        Time.seconds(5)))
                 .process(new SumProcessFunction());
 
         // Sink

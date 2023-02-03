@@ -82,7 +82,7 @@ public class TimeWindowProcessTimeWithOrderedSourceSample {
             cxt.collect("flink");
             cxt.collect("flink");
 
-            // TODO_MA 马中华 注释： 16s 输出一条数据  :  20:53:26
+            // 16s 输出一条数据  :  20:53:26
             TimeUnit.SECONDS.sleep(3);
             cxt.collect("flink");
 
