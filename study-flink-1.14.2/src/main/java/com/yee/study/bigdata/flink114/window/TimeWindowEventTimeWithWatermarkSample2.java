@@ -112,9 +112,7 @@ public class TimeWindowEventTimeWithWatermarkSample2 {
     }
 
     /**
-     * 注释： 自定义的顺序 source
-     * 1、在第 13s 的时候，输出两条数据
-     * 2、在第 16s 的时候，输出一条数据
+     * 顺序输出，每隔4秒输出一条数据
      */
     static class UnOrderedSource implements SourceFunction<MyEvent> {
 

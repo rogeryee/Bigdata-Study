@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * 注意：
  * 1). 每个窗口都会接受5s的延迟
- * 2). event2 会落在正确的窗口内
+ * 2). event1 会落在正确的窗口内
  * 3). event3 不能落在窗口 [17:41:35 - 17:41:45] 是因为它已经超过的5s的延迟
  * 4). event2 本该 17:41:43 输出，延迟到 17:41:49 输出
  * 5). event3 本该 17:41:43 输出，延迟到 17:41:51 输出
@@ -85,7 +85,7 @@ public class TimeWindowEventTimeWithWatermarkSample1 {
     }
 
     /**
-     * 注释： 自定义的乱序 source
+     * 自定义的乱序 source
      * 1、在第 13s 的时候，输出1条数据
      * 2、在第 16s 的时候，输出1条数据
      * 3、在第 19s 的时候，输出1条数据（本该在第13s输出）

@@ -30,6 +30,6 @@ public class MyEventSumProcessFunction extends ProcessWindowFunction<MyEvent, Tu
         String winEnd = dateFormat.format(context.window().getEnd());
         String processTime = dateFormat.format(context.currentProcessingTime());
         String currentTime = dateFormat.format(System.currentTimeMillis());
-        log.info(currentTime + ": processTime = " + processTime + " Window[" + winStart + " - " + winEnd + "] triggered, out=(" + key + ", " + count + "), events=" + allElements);
+        System.out.println(currentTime + ": processTime = " + processTime + " Window[" + winStart + " - " + winEnd + "] triggered, out=(" + key + ", " + count + "), events=" + allElements);
     }
 }
