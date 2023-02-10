@@ -6,6 +6,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.Schema;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.util.Collector;
@@ -13,13 +14,14 @@ import org.apache.flink.util.Collector;
 import java.util.stream.Stream;
 
 /**
- * DataStream 和 Table 配合使用的示例
+ * DataStream 和 Table 配合使用的示例1
+ * DataStream 获取Socket的数据
  * <p>
  * nc -lk 6789
  *
  * @author Roger.Yi
  */
-public class SocketSample {
+public class DataStreamSample {
 
     public static void main(String[] args) throws Exception {
         // Stream env
@@ -47,7 +49,7 @@ public class SocketSample {
         Table resultTable = tabEnv.sqlQuery("select word, count(1) as cnt from wordTable group by word");
 
         // resultTable 一直在更新，这里需要穿换成 ChangelogStream
-        tabEnv.toChangelogStream(resultTable).print();
+//        tabEnv.toChangelogStream(resultTable).print();
         resultTable.execute().print();
 
         sEnv.execute("");
