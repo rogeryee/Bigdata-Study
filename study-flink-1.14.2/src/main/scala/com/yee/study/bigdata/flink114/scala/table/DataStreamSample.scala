@@ -1,6 +1,6 @@
 package com.yee.study.bigdata.flink114.scala.table
 
-import org.apache.flink.api.scala.createTypeInformation
+import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.util.Collector
