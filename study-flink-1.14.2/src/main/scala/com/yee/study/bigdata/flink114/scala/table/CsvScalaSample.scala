@@ -3,11 +3,11 @@ package com.yee.study.bigdata.flink114.scala.table
 import org.apache.flink.table.api.{DataTypes, EnvironmentSettings, FormatDescriptor, Schema, TableDescriptor, TableEnvironment}
 
 /**
- * 基于 Flink Table，读取csv内容并输出到新的csv的示例
+ * 基于 Flink Table，读取csv内容并输出到新的csv的示例 (基于Scala)
  *
  * @author Roger.Yi
  */
-object CsvSample {
+object CsvScalaSample {
 
   def main(args: Array[String]): Unit = {
     val envSettings = EnvironmentSettings.newInstance().inBatchMode().build()

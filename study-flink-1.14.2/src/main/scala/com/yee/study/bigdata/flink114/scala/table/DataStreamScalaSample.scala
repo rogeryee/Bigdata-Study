@@ -6,14 +6,14 @@ import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.util.Collector
 
 /**
- * DataStream 和 Table 配合使用的示例1
+ * DataStream 和 Table 配合使用的示例1 (基于Scala)
  * DataStream 获取Socket的数据
  *
  * nc -lk 6789
  *
  * @author Roger.Yi
  */
-object DataStreamSample {
+object DataStreamScalaSample {
 
   def main(args: Array[String]): Unit = {
     val sEnv = StreamExecutionEnvironment.getExecutionEnvironment
