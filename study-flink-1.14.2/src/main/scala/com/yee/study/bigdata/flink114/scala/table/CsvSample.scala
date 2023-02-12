@@ -7,7 +7,7 @@ import org.apache.flink.table.api.{DataTypes, EnvironmentSettings, FormatDescrip
  *
  * @author Roger.Yi
  */
-object CsvScalaSample {
+object CsvSample {
 
   def main(args: Array[String]): Unit = {
     val envSettings = EnvironmentSettings.newInstance().inBatchMode().build()

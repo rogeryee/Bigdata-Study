@@ -13,7 +13,7 @@ import org.apache.flink.util.Collector
  *
  * @author Roger.Yi
  */
-object DataStreamScalaSample {
+object DataStreamSample {
 
   def main(args: Array[String]): Unit = {
     val sEnv = StreamExecutionEnvironment.getExecutionEnvironment

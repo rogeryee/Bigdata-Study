@@ -19,7 +19,7 @@ import java.time.Instant
  *
  * @author Roger.Yil
  */
-object DataStreamApiScalaSample {
+object DataStreamApiSample {
 
   def main(args: Array[String]): Unit = {
     val sEnv = StreamExecutionEnvironment.getExecutionEnvironment
