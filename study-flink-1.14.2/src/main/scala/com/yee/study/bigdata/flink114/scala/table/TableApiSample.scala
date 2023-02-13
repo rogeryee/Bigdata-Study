@@ -25,7 +25,10 @@ object TableApiSample {
     //    columnOperationSamples(sEnv, tEnv)
 
     // Aggregation 示例
-    aggregationSamples(sEnv, tEnv)
+    //    aggregationSamples(sEnv, tEnv)
+
+    // Join 示例
+    //    joinSamples(sEnv, tEnv)
   }
 
   /**
@@ -39,12 +42,11 @@ object TableApiSample {
   def scanSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
     // DataStream
     val dataStream = sEnv.fromElements(
-      Order("Roger", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("Andy", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("John", "USA", "NY", Instant.ofEpochMilli(1000)),
-      Order("Eric", "USA", "LA", Instant.ofEpochMilli(1000)),
-      Order("Rooney", "UK", "MAN", Instant.ofEpochMilli(1000))
-    )
+      Order("Roger", "China", "Shanghai", 2000, Instant.now()),
+      Order("Andy", "China", "Shanghai", 2000, Instant.now().plusSeconds(2)),
+      Order("John", "USA", "NY", 1500, Instant.now().plusSeconds(2)),
+      Order("Eric", "USA", "LA", 800, Instant.now().plusSeconds(2)),
+      Order("Rooney", "UK", "MAN", 700, Instant.now().plusSeconds(2)))
 
     tabEnv.createTemporaryView("Orders", dataStream)
     val orders = tabEnv.from("Orders") // schema (a, b, c, rowtime)
@@ -126,11 +128,11 @@ object TableApiSample {
   def columnOperationSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
     // DataStream
     val dataStream = sEnv.fromElements(
-      Order("Roger", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("Andy", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("John", "USA", "NY", Instant.ofEpochMilli(1000)),
-      Order("Eric", "USA", "LA", Instant.ofEpochMilli(1000)),
-      Order("Rooney", "UK", "MAN", Instant.ofEpochMilli(1000)));
+      Order("Roger", "China", "Shanghai", 2000, Instant.now()),
+      Order("Andy", "China", "Shanghai", 2000, Instant.now().plusSeconds(2)),
+      Order("John", "USA", "NY", 1500, Instant.now().plusSeconds(2)),
+      Order("Eric", "USA", "LA", 800, Instant.now().plusSeconds(2)),
+      Order("Rooney", "UK", "MAN", 700, Instant.now().plusSeconds(2)))
 
     tabEnv.createTemporaryView(
       "Orders",
@@ -207,32 +209,276 @@ object TableApiSample {
   def aggregationSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
     // DataStream
     val dataStream = sEnv.fromElements(
-      Order("Roger", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("Andy", "China", "Shanghai", Instant.ofEpochMilli(1000)),
-      Order("John", "USA", "NY", Instant.ofEpochMilli(1000)),
-      Order("Eric", "USA", "LA", Instant.ofEpochMilli(1000)),
-      Order("Rooney", "UK", "MAN", Instant.ofEpochMilli(1000)))
-    tabEnv.createTemporaryView("Orders", dataStream)
-    val orders = tabEnv.from("Orders") // schema (a, b, c, rowtime)
+      Order("Roger", "China", "Shanghai", 2000, Instant.now()),
+      Order("Andy", "China", "Shanghai", 2000, Instant.now().plusSeconds(2)),
+      Order("John", "USA", "NY", 1500, Instant.now().plusSeconds(2)),
+      Order("Eric", "USA", "LA", 800, Instant.now().plusSeconds(2)),
+      Order("Rooney", "UK", "MAN", 700, Instant.now().plusSeconds(2)))
+
+    tabEnv.createTemporaryView(
+      "Orders",
+      dataStream,
+      Schema.newBuilder()
+        .columnByExpression("proc_time", "PROCTIME()")
+        .columnByExpression("row_time", "CAST(event_time AS TIMESTAMP_LTZ(3))")
+        .watermark("row_time", "row_time - INTERVAL '3' SECOND")
+        .build()
+    )
+    val orders = tabEnv.from("Orders")
+    orders.printSchema()
 
     /**
      * 1) GroupBy
      * +----+--------------------------------+----------------------+
-     * | op |                              a |                    d |
+     * | op |                              b |                    d |
      * +----+--------------------------------+----------------------+
-     * | +I |                           Eric |                    1 |
-     * | +I |                          Roger |                    1 |
-     * | +I |                         Rooney |                    1 |
-     * | +I |                           Andy |                    1 |
-     * | +I |                           John |                    1 |
+     * | +I |                             UK |                    1 |
+     * | +I |                            USA |                    1 |
+     * | -U |                            USA |                    1 |
+     * | +U |                            USA |                    2 |
+     * | +I |                          China |                    1 |
+     * | -U |                          China |                    1 |
+     * | +U |                          China |                    2 |
      * +----+--------------------------------+----------------------+
      */
     orders
       .groupBy($"b")
       .select($"b", $"a".count as "d")
       .execute
-      .print
-  }
-}
+    //      .print
 
-case class Order(a: String, b: String, c: String, rowtime: Instant)
+    /**
+     * EventTime - GroupBy Window Aggregation
+     * +----+--------------------------------+----------------------+
+     * | op |                              b |                    d |
+     * +----+--------------------------------+----------------------+
+     * | +I |                             UK |                    1 |
+     * | +I |                            USA |                    1 |
+     * | -U |                            USA |                    1 |
+     * | +U |                            USA |                    2 |
+     * | +I |                          China |                    1 |
+     * | -U |                          China |                    1 |
+     * | +U |                          China |                    2 |
+     * +----+--------------------------------+----------------------+
+     */
+    orders
+      .window(Tumble over 3.seconds() on $"row_time" as "w")
+      .groupBy($"w")
+      .select(
+        $"w".start,
+        $"w".end,
+        $"w".rowtime,
+        $"a".count as "d")
+      .execute()
+    //      .print()
+
+    /**
+     * ProcessTime - GroupBy Window Aggregation
+     */
+    orders
+      .window(Tumble over 3.seconds() on $"proc_time" as "w")
+      .groupBy($"w")
+      .select(
+        $"w".start,
+        $"w".end,
+        $"w".proctime,
+        $"a".count as "d")
+      .execute()
+    //      .print()
+
+    /**
+     * Over Window Aggregation
+     *
+     * +----+---------------+---------------+---------------+---------------+
+     * | op |             b |           avg |           max |           min |
+     * +----+---------------+---------------+---------------+---------------+
+     * | +I |           USA |          1150 |          1500 |           800 |
+     * | +I |           USA |          1150 |          1500 |           800 |
+     * | +I |            UK |           700 |           700 |           700 |
+     * | +I |         China |          2000 |          2000 |          2000 |
+     * | +I |         China |          2000 |          2000 |          2000 |
+     * +----+---------------+---------------+---------------+---------------+
+     */
+    orders.window(
+      Over
+        partitionBy $"b"
+        orderBy $"row_time"
+        preceding UNBOUNDED_RANGE
+        following CURRENT_RANGE
+        as "w")
+      .select(
+        $"b",
+        $"d".avg over $"w" as "avg",
+        $"d".max over $"w" as "max",
+        $"d".min over $"w" as "min"
+      )
+      .execute()
+    //      .print()
+
+    /**
+     * Distinct Aggregation
+     * +----+--------------------------------+----------------------+
+     * | op |                              b |                  cnt |
+     * +----+--------------------------------+----------------------+
+     * | +I |                             UK |                    1 |
+     * | +I |                          China |                    1 |
+     * | +I |                            USA |                    1 |
+     * | -U |                            USA |                    1 |
+     * | +U |                            USA |                    2 |
+     * +----+--------------------------------+----------------------+
+     */
+    orders
+      .groupBy($"b")
+      .select($"b", $"d".count.distinct as "cnt")
+      .execute()
+    //      .print()
+
+    /**
+     * Distinct
+     */
+    orders.distinct()
+  }
+
+  /**
+   * Join 示例
+   *
+   * @param sEnv
+   * @param tabEnv
+   */
+  def joinSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    // Inner join
+    var left = tabEnv.from("MyTable").select($"a", $"b", $"c")
+    var right = tabEnv.from("MyTable").select($"d", $"e", $"f")
+    var result = left
+      .join(right)
+      .where($"a" === $"d")
+      .select($"a", $"b", $"e")
+
+    // Outer Join
+    val leftOuterResult = left
+      .leftOuterJoin(right, $"a" === $"d")
+      .select($"a", $"b", $"e")
+    val rightOuterResult = left
+      .rightOuterJoin(right, $"a" === $"d")
+      .select($"a", $"b", $"e")
+    val fullOuterResult = left
+      .fullOuterJoin(right, $"a" === $"d")
+      .select($"a", $"b", $"e")
+
+    // Interval Join
+    left = tabEnv.from("MyTable").select($"a", $"b", $"c", $"ltime")
+    right = tabEnv.from("MyTable").select($"d", $"e", $"f", $"rtime")
+
+    result = left.join(right)
+      .where($"a" === $"d" && $"ltime" >= $"rtime" - 5.minutes && $"ltime" < $"rtime" + 10.minutes)
+      .select($"a", $"b", $"e", $"ltime")
+  }
+
+  /**
+   * Set Operations 示例
+   *
+   * @param sEnv
+   * @param tabEnv
+   */
+  def setOperationsSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    // Union
+    var left = tabEnv.from("orders1")
+    var right = tabEnv.from("orders2")
+    left.union(right)
+
+    // Union All
+    left.unionAll(right)
+
+    // Intersect
+    left.intersect(right)
+
+    // Intersect All
+    left.intersectAll(right)
+
+    // Minus
+    left.minus(right)
+
+    // Minus All
+    left.minusAll(right)
+
+    // In
+    left.select($"a", $"b", $"c").where($"a".in(right))
+  }
+
+  /**
+   * GroupWindow 示例
+   *
+   * @param sEnv
+   * @param tabEnv
+   */
+  def groupWindowSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    val input = tabEnv.from("input")
+
+    // Tumble Window
+    // Tumbling Event-time Window
+    input.window(Tumble over 10.minutes on $"rowtime" as $"w")
+
+    // Tumbling Processing-time Window (assuming a processing-time attribute "proctime")
+    input.window(Tumble over 10.minutes on $"proctime" as $"w")
+
+    // Tumbling Row-count Window (assuming a processing-time attribute "proctime")
+    input.window(Tumble over 10.rows on $"proctime" as $"w")
+
+    // Slide Window
+    // Sliding Event-time Window
+    input.window(Slide over 10.minutes every 5.minutes on $"rowtime" as $"w")
+
+    // Sliding Processing-time window (assuming a processing-time attribute "proctime")
+    input.window(Slide over 10.minutes every 5.minutes on $"proctime" as $"w")
+
+    // Sliding Row-count window (assuming a processing-time attribute "proctime")
+    input.window(Slide over 10.rows every 5.rows on $"proctime" as $"w")
+
+    // Session Window
+    // Session Event-time Window
+    input.window(Session withGap 10.minutes on $"rowtime" as $"w")
+
+    // Session Processing-time Window (assuming a processing-time attribute "proctime")
+    input.window(Session withGap 10.minutes on $"proctime" as $"w")
+  }
+
+  /**
+   * OverWindow 示例
+   *
+   * @param sEnv
+   * @param tabEnv
+   */
+  def overWindowSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    val input = tabEnv.from("input")
+
+    // Unbounded Over Windows
+    // Unbounded Event-time over window (assuming an event-time attribute "rowtime")
+    input.window(Over partitionBy $"a" orderBy $"rowtime" preceding UNBOUNDED_RANGE as "w")
+
+    // Unbounded Processing-time over window (assuming a processing-time attribute "proctime")
+    input.window(Over partitionBy $"a" orderBy $"proctime" preceding UNBOUNDED_RANGE as "w")
+
+    // Unbounded Event-time Row-count over window (assuming an event-time attribute "rowtime")
+    input.window(Over partitionBy $"a" orderBy $"rowtime" preceding UNBOUNDED_ROW as "w")
+
+    // Unbounded Processing-time Row-count over window (assuming a processing-time attribute "proctime")
+    input.window(Over partitionBy $"a" orderBy $"proctime" preceding UNBOUNDED_ROW as "w")
+
+    // Bounded Over Windows
+    // Bounded Event-time over window (assuming an event-time attribute "rowtime")
+    input.window(Over partitionBy $"a" orderBy $"rowtime" preceding 1.minutes as "w")
+
+    // Bounded Processing-time over window (assuming a processing-time attribute "proctime")
+    input.window(Over partitionBy $"a" orderBy $"proctime" preceding 1.minutes as "w")
+
+    // Bounded Event-time Row-count over window (assuming an event-time attribute "rowtime")
+    input.window(Over partitionBy $"a" orderBy $"rowtime" preceding 10.rows as "w")
+
+    // Bounded Processing-time Row-count over window (assuming a processing-time attribute "proctime")
+    input.window(Over partitionBy $"a" orderBy $"proctime" preceding 10.rows as "w")
+
+  }
+
+  case class Order(a: String, b: String, c: String, d: Long = 1000L, event_time: Instant)
+
+}

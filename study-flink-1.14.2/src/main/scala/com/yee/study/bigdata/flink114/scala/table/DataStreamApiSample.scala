@@ -41,7 +41,10 @@ object DataStreamApiSample {
     //    toChangelogStreamSamples(sEnv, tEnv)
 
     // StreamStatementSet 示例
-    streamStatementSetSamples(sEnv, tEnv)
+//    streamStatementSetSamples(sEnv, tEnv)
+
+    // Time Attributes （EventTime、ProcessTime） 示例
+    timeAttributesSamples(sEnv, tEnv)
   }
 
   /**
@@ -419,5 +422,101 @@ object DataStreamApiSample {
     statementSet.addInsert(sinkDescriptor, tableFromStream)
     statementSet.attachAsDataStream()
     sEnv.execute
+  }
+
+  /**
+   * Time Attributes 示例
+   * 1） EventTime
+   * 2） ProcessTime
+   *
+   * @param sEnv
+   * @param tabEnv
+   */
+  def timeAttributesSamples(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    /**
+     * 1）Event Time
+     * Schema:
+     * (
+     *  `user_name` STRING,
+     *  `data` STRING,
+     *  `user_action_time` TIMESTAMP(3) *ROWTIME*,
+     *  WATERMARK FOR `user_action_time`: TIMESTAMP(3) AS `user_action_time` - INTERVAL '5' SECOND
+     * )
+     *
+     * Result：
+     * +----+-------------------------+-------------------------+----------------------+
+     * | op |                 w_start |                   w_end |                  cnt |
+     * +----+-------------------------+-------------------------+----------------------+
+     * | +I | 2023-02-13 02:10:54.000 | 2023-02-13 02:10:57.000 |                   24 |
+     * | +I | 2023-02-13 02:10:57.000 | 2023-02-13 02:11:00.000 |                   36 |
+     * | +I | 2023-02-13 02:11:00.000 | 2023-02-13 02:11:03.000 |                   36 |
+     */
+    val user_actions_1 = tabEnv.executeSql(
+      """
+        |CREATE TABLE user_actions_1 (
+        | user_name STRING,
+        | data STRING,
+        | user_action_time TIMESTAMP(3),
+        | WATERMARK FOR user_action_time AS user_action_time - INTERVAL '5' SECOND
+        |)
+        |WITH (
+        |  'connector' = 'datagen',
+        |  'rows-per-second' = '10'
+        |)
+        |""".stripMargin)
+    tabEnv.from("user_actions_1").printSchema()
+
+    tabEnv.executeSql(
+      """
+        |SELECT
+        |  TUMBLE_START(user_action_time, INTERVAL '3' SECOND) as w_start
+        |, TUMBLE_END(user_action_time, INTERVAL '3' SECOND) as w_end
+        |, count(1) as cnt
+        |FROM user_actions_1
+        |GROUP BY TUMBLE(user_action_time, INTERVAL '3' SECOND)
+        |""".stripMargin)
+//      .print()
+
+    /**
+     * 2) ProcessTime
+     * Schema:
+     * (
+     *   `user_name` STRING,
+     *   `data` STRING,
+     *   `user_action_time` TIMESTAMP_LTZ(3) NOT NULL *PROCTIME* AS PROCTIME()
+     * )
+     *
+     * Result:
+     * +----+-------------------------+-------------------------+----------------------+
+     * | op |                 w_start |                   w_end |                  cnt |
+     * +----+-------------------------+-------------------------+----------------------+
+     * | +I | 2023-02-13 10:15:54.000 | 2023-02-13 10:15:57.000 |                   24 |
+     * | +I | 2023-02-13 10:15:57.000 | 2023-02-13 10:16:00.000 |                   36 |
+     * | +I | 2023-02-13 10:16:00.000 | 2023-02-13 10:16:03.000 |                   36 |
+     */
+    tabEnv.executeSql(
+      """
+        |CREATE TABLE user_actions_2 (
+        | user_name STRING,
+        | data STRING,
+        | user_action_time AS PROCTIME()
+        |)
+        |WITH (
+        |  'connector' = 'datagen',
+        |  'rows-per-second' = '10'
+        |)
+        |""".stripMargin)
+    tabEnv.from("user_actions_2").printSchema()
+
+    tabEnv.executeSql(
+      """
+        |SELECT
+        |  TUMBLE_START(user_action_time, INTERVAL '3' SECOND) as w_start
+        |, TUMBLE_END(user_action_time, INTERVAL '3' SECOND) as w_end
+        |, count(1) as cnt
+        |FROM user_actions_2
+        |GROUP BY TUMBLE(user_action_time, INTERVAL '3' SECOND)
+        |""".stripMargin)
+//      .print()
   }
 }
