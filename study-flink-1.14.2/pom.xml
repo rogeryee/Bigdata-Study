@@ -18,21 +18,29 @@
 
     <dependencies>
 
+        <!-- log -->
         <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_${deps.flink.scala.version}</artifactId>
-            <version>${deps.flink.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${deps.slf4j.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-scala_${deps.flink.scala.version}</artifactId>
-            <version>${deps.flink.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${deps.slf4j.version}</version>
         </dependency>
 
+        <!-- flink Streaming -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-java_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
@@ -42,7 +50,13 @@
             <version>${deps.flink.version}</version>
         </dependency>
 
-        <!-- Flink Table & SQL start-->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-scala_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <!-- Flink Table & SQL -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-table-api-java-bridge_2.11</artifactId>
@@ -86,6 +100,20 @@
             <version>${deps.flink.version}</version>
         </dependency>
 
+        <!-- Flink Format -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-csv</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-json</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <!-- Flink Connectors -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka_${deps.flink.scala.version}</artifactId>
@@ -107,7 +135,7 @@
 
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-csv</artifactId>
+            <artifactId>flink-connector-jdbc_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
@@ -133,7 +161,7 @@
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
-<!--        <sourceDirectory>src/main/java</sourceDirectory>-->
+        <!--        <sourceDirectory>src/main/java</sourceDirectory>-->
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
@@ -146,6 +174,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <args>
+                        <arg>-target:jvm-1.8</arg>
+                    </args>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

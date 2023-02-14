@@ -19,7 +19,7 @@ object TableApiSample {
     val tEnv = StreamTableEnvironment.create(sEnv)
 
     // Scan, Projection, Filter 示例
-    //    scanSamples(sEnv, tEnv)
+        scanSamples(sEnv, tEnv)
 
     // Column Operation 示例
     //    columnOperationSamples(sEnv, tEnv)

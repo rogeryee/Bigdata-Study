@@ -17,6 +17,13 @@
 
     <dependencies>
 
+        <!-- Slf4j + Logback -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${deps.logback.version}</version>
+        </dependency>
+
         <!-- hadoop-common -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
