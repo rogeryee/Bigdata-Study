@@ -1,6 +1,7 @@
 package com.yee.study.bigdata.flink114.scala.table
 
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.table.api.Table
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
 /**
@@ -87,7 +88,7 @@ object KafkaSample {
   }
 
   def sinkStat(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
-    val statTable = tabEnv.sqlQuery(
+    val statTable: Table = tabEnv.sqlQuery(
       """
         |SELECT
         |  DATE_FORMAT(behavior_time, 'yyyy-MM-dd') as stat_date
@@ -96,9 +97,11 @@ object KafkaSample {
         |FROM kafka_table
         |GROUP BY DATE_FORMAT(behavior_time, 'yyyy-MM-dd')
         |""".stripMargin)
-    statTable.execute().print()
-
     tabEnv.createTemporaryView("stat_table", statTable)
+
+    // Print to console
+    val dataStream = tabEnv.toChangelogStream(statTable);
+    dataStream.print()
 
     // Sink Table
     tabEnv.executeSql(
