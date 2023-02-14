@@ -33,13 +33,15 @@ object KafkaSample {
         | 'topic' = 'user-behavior',
         | 'properties.bootstrap.servers' = 'localhost:9092',
         | 'properties.group.id' = 'test_group',
-        | 'scan.startup.mode' = 'earliest-offset',
+        | 'properties.enable.auto.commit' = 'true',
+        | 'properties.auto.commit.interval.ms' = '1000',
+        | 'scan.startup.mode' = 'group-offsets',
         | 'format' = 'json',
         | 'json.ignore-parse-errors' = 'true'
         |)
         |""".stripMargin)
 
-    //    sinkDetail(sEnv, tEnv)
+    sinkDetail(sEnv, tEnv)
     sinkStat(sEnv, tEnv)
     sEnv.execute()
   }
