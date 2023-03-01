@@ -43,15 +43,15 @@ object HiveSample {
         | 'properties.group.id' = 'test_group',
         | 'properties.enable.auto.commit' = 'true',
         | 'properties.auto.commit.interval.ms' = '1000',
-        | 'scan.startup.mode' = 'latest-offsets',
+        | 'scan.startup.mode' = 'latest-offset',
         | 'format' = 'json',
         | 'json.ignore-parse-errors' = 'true'
         |)
         |""".stripMargin)
 
-    //    sinkDetail(sEnv, tEnv)
-    sinkStat(sEnv, tEnv)
-    //    sEnv.execute()
+    sinkDetail(sEnv, tEnv)
+        sinkStat(sEnv, tEnv)
+        sEnv.execute()
   }
 
   def sinkDetail(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
@@ -98,56 +98,50 @@ object HiveSample {
   }
 
   def sinkStat(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
+    tabEnv.useCatalog("default_catalog")
+    tabEnv.useDatabase("default_database")
+    val statTable: Table = tabEnv.sqlQuery(
+      """
+        |SELECT
+        |  DATE_FORMAT(behavior_time, 'yyyy-MM-dd') as stat_date
+        |, user_id as pv
+        |, item_id as uv
+        |FROM kafka_table
+        |""".stripMargin)
+    tabEnv.createTemporaryView("stat_table", statTable)
+
     val hive: HiveCatalog = new HiveCatalog(
       "myhive",
       "roger_tmp",
       "/Users/cntp/MyWork/DevTools/apache-hive-3.1.3-bin/conf")
     tabEnv.registerCatalog("myhive", hive)
     tabEnv.useCatalog("myhive")
-
     tabEnv.getConfig.setSqlDialect(SqlDialect.HIVE)
-
-    tabEnv.executeSql(
-      """
-        |show tables
-        |""".stripMargin)
-      .print()
-
-    val statTable: Table = tabEnv.sqlQuery(
-      """
-        |SELECT
-        |  DATE_FORMAT(behavior_time, 'yyyy-MM-dd') as stat_date
-        |, count(1) as pv
-        |, count(distinct user_id) as uv
-        |FROM kafka_table
-        |GROUP BY DATE_FORMAT(behavior_time, 'yyyy-MM-dd')
-        |""".stripMargin)
-    tabEnv.createTemporaryView("stat_table", statTable)
 
     // Sink Table
     tabEnv.executeSql(
       """
-        |CREATE TABLE user_behavior_stat_flink (
-        | `stat_date` STRING,
+        |CREATE TABLE IF NOT EXISTS user_behavior_stat_flink (
         | `pv` BIGINT,
-        | `uv` BIGINT,
-        | PRIMARY KEY (`stat_date`) NOT ENFORCED
-        |) WITH (
-        | 'connector' = 'jdbc',
-        | 'url' = 'jdbc:mysql://localhost:3306/flink?useSSL=false',
-        | 'driver' = 'com.mysql.cj.jdbc.Driver',
-        | 'table-name' = 'user_behavior_stat',
-        | 'username' = 'root',
-        | 'password' = '12345678'
+        | `uv` BIGINT
+        |)
+        |PARTITIONED BY (`stat_date` STRING)
+        |STORED AS parquet TBLPROPERTIES
+        |(
+        | 'auto-compaction' = 'true',
+        | 'compaction.file-size' = '128MB',
+        | 'format' = 'parquet',
+        | 'parquet.compression' = 'GZIP',
+        | 'sink.partition-commit.policy.kind'='metastore,success-file'
         |)
         |""".stripMargin)
 
     // Sink
     tabEnv.executeSql(
       """
-        |INSERT INTO user_behavior_stat_flink
-        |SELECT `stat_date`, `pv`, `uv`
-        |FROM stat_table
+        |INSERT INTO myhive.roger_tmp.user_behavior_stat_flink
+        |SELECT `pv`, `uv`, `stat_date`
+        |FROM default_catalog.default_database.stat_table
         |""".stripMargin)
   }
 }
