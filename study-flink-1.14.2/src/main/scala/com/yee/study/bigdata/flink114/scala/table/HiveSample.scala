@@ -10,6 +10,12 @@ import org.apache.flink.table.catalog.hive.HiveCatalog
  *
  * Flink 从 Kafka 中消费了用户行为数据，处理后将 PV 和 UV 输出到 Hive
  *
+ * ./zookeeper-server-start.sh ../config/zookeeper.properties
+ * ./kafka-server-start.sh ../config/server.properties
+ * ./kafka-console-producer.sh --topic user-behavior --bootstrap-server localhost:9092
+ *
+ * {"user_id": 1, "item_id": 1, "category_id": 1, "behavior_time_ts": 1677640151580}
+ *
  * @author Roger.Yi
  */
 object HiveSample {
@@ -25,7 +31,8 @@ object HiveSample {
         | `user_id` BIGINT,
         | `item_id` BIGINT,
         | `category_id` BIGINT,
-        | `behavior_time` TIMESTAMP(3),
+        | `behavior_time_ts` BIGINT,
+        | `behavior_time` AS TO_TIMESTAMP_LTZ(`behavior_time_ts`, 3),
         | `event_time` TIMESTAMP(3) METADATA FROM 'timestamp',
         | `offset` BIGINT METADATA VIRTUAL,
         | `partition` BIGINT METADATA VIRTUAL
@@ -36,7 +43,7 @@ object HiveSample {
         | 'properties.group.id' = 'test_group',
         | 'properties.enable.auto.commit' = 'true',
         | 'properties.auto.commit.interval.ms' = '1000',
-        | 'scan.startup.mode' = 'group-offsets',
+        | 'scan.startup.mode' = 'latest-offsets',
         | 'format' = 'json',
         | 'json.ignore-parse-errors' = 'true'
         |)
@@ -44,7 +51,7 @@ object HiveSample {
 
     //    sinkDetail(sEnv, tEnv)
     sinkStat(sEnv, tEnv)
-//    sEnv.execute()
+    //    sEnv.execute()
   }
 
   def sinkDetail(sEnv: StreamExecutionEnvironment, tabEnv: StreamTableEnvironment): Unit = {
@@ -106,45 +113,41 @@ object HiveSample {
         |""".stripMargin)
       .print()
 
-//    val statTable: Table = tabEnv.sqlQuery(
-//      """
-//        |SELECT
-//        |  DATE_FORMAT(behavior_time, 'yyyy-MM-dd') as stat_date
-//        |, count(1) as pv
-//        |, count(distinct user_id) as uv
-//        |FROM kafka_table
-//        |GROUP BY DATE_FORMAT(behavior_time, 'yyyy-MM-dd')
-//        |""".stripMargin)
-//    tabEnv.createTemporaryView("stat_table", statTable)
-//
-//    // Print to console
-//    val dataStream = tabEnv.toChangelogStream(statTable);
-//    dataStream.print()
-//
-//    // Sink Table
-//    tabEnv.executeSql(
-//      """
-//        |CREATE TABLE user_behavior_stat_flink (
-//        | `stat_date` STRING,
-//        | `pv` BIGINT,
-//        | `uv` BIGINT,
-//        | PRIMARY KEY (`stat_date`) NOT ENFORCED
-//        |) WITH (
-//        | 'connector' = 'jdbc',
-//        | 'url' = 'jdbc:mysql://localhost:3306/flink?useSSL=false',
-//        | 'driver' = 'com.mysql.cj.jdbc.Driver',
-//        | 'table-name' = 'user_behavior_stat',
-//        | 'username' = 'root',
-//        | 'password' = '12345678'
-//        |)
-//        |""".stripMargin)
-//
-//    // Sink
-//    tabEnv.executeSql(
-//      """
-//        |INSERT INTO user_behavior_stat_flink
-//        |SELECT `stat_date`, `pv`, `uv`
-//        |FROM stat_table
-//        |""".stripMargin)
+    val statTable: Table = tabEnv.sqlQuery(
+      """
+        |SELECT
+        |  DATE_FORMAT(behavior_time, 'yyyy-MM-dd') as stat_date
+        |, count(1) as pv
+        |, count(distinct user_id) as uv
+        |FROM kafka_table
+        |GROUP BY DATE_FORMAT(behavior_time, 'yyyy-MM-dd')
+        |""".stripMargin)
+    tabEnv.createTemporaryView("stat_table", statTable)
+
+    // Sink Table
+    tabEnv.executeSql(
+      """
+        |CREATE TABLE user_behavior_stat_flink (
+        | `stat_date` STRING,
+        | `pv` BIGINT,
+        | `uv` BIGINT,
+        | PRIMARY KEY (`stat_date`) NOT ENFORCED
+        |) WITH (
+        | 'connector' = 'jdbc',
+        | 'url' = 'jdbc:mysql://localhost:3306/flink?useSSL=false',
+        | 'driver' = 'com.mysql.cj.jdbc.Driver',
+        | 'table-name' = 'user_behavior_stat',
+        | 'username' = 'root',
+        | 'password' = '12345678'
+        |)
+        |""".stripMargin)
+
+    // Sink
+    tabEnv.executeSql(
+      """
+        |INSERT INTO user_behavior_stat_flink
+        |SELECT `stat_date`, `pv`, `uv`
+        |FROM stat_table
+        |""".stripMargin)
   }
 }

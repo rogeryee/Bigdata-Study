@@ -8,6 +8,7 @@ import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
  * Flink SQL + Kafka 示例
  *
  * Flink 从 Kafka 中消费了用户行为数据，处理后将 PV 和 UV 输出到 MySQL
+ * {"user_id": 1, "item_id": 1, "category_id": 1, "behavior_time_ts": 1677640151580}
  *
  * @author Roger.Yi
  */
@@ -17,14 +18,16 @@ object KafkaSample {
     val sEnv = StreamExecutionEnvironment.getExecutionEnvironment
     val tEnv = StreamTableEnvironment.create(sEnv)
 
-    // Kafka Source
+    // Kafka Source 0002256478S
+    //  `behavior_time` TO_TIMESTAMP(FROM_UNIXTIME(behavior_time_ts, 'yyyy-MM-dd HH:mm:ss.SSS')),
     tEnv.executeSql(
       """
         |CREATE TABLE kafka_table (
         | `user_id` BIGINT,
         | `item_id` BIGINT,
         | `category_id` BIGINT,
-        | `behavior_time` TIMESTAMP(3),
+        | `behavior_time_ts` BIGINT,
+        | `behavior_time` AS TO_TIMESTAMP_LTZ(`behavior_time_ts`, 3),
         | `event_time` TIMESTAMP(3) METADATA FROM 'timestamp',
         | `offset` BIGINT METADATA VIRTUAL,
         | `partition` BIGINT METADATA VIRTUAL
@@ -32,10 +35,10 @@ object KafkaSample {
         | 'connector' = 'kafka',
         | 'topic' = 'user-behavior',
         | 'properties.bootstrap.servers' = 'localhost:9092',
-        | 'properties.group.id' = 'test_group',
+        | 'properties.group.id' = 'test-group',
         | 'properties.enable.auto.commit' = 'true',
         | 'properties.auto.commit.interval.ms' = '1000',
-        | 'scan.startup.mode' = 'group-offsets',
+        | 'scan.startup.mode' = 'latest-offset',
         | 'format' = 'json',
         | 'json.ignore-parse-errors' = 'true'
         |)

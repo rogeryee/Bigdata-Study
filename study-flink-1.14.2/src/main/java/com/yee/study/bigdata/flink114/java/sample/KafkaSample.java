@@ -58,10 +58,11 @@ public class KafkaSample {
 
         // 获取Kafka消息
         KafkaSource<String> source = KafkaSource.<String>builder()
-                .setTopics("test-upstream")
+                .setTopics("user-behavior")
                 .setGroupId("flink")
                 .setBootstrapServers("localhost:9092")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.LATEST))
+//                .setStartingOffsets(OffsetsInitializer.committedOffsets())
                 .setProperty("enable.auto.commit", "true")
                 .setProperty("auto.commit.interval.ms", "1000")
                 .setValueOnlyDeserializer(new SimpleStringSchema())
