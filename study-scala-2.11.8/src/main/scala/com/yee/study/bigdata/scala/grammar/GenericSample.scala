@@ -26,21 +26,43 @@ object GenericSample {
     // funcWithUpperAndLowerBound(Array(new Superman))
     // 编译出错：Human是Person的父类
     // funcWithUpperAndLowerBound(Array(new Human))
+
+    // 非变
+    val A: Temp1[Sub] = new Temp1[Sub]
+    // 编译出错，非变类型
+    // val B: Temp1[Super] = A
+
+    // 协变
+    val C: Temp2[Sub] = new Temp2[Sub]
+    val D: Temp2[Super] = C
+
+    // 逆变
+    val E: Temp3[Super] = new Temp3[Super]
+    val F: Temp3[Sub] = E
   }
 
   /**
-   * 泛型类
+   * 泛型
    */
   def genericClass(): Unit = {
     println(Pair("Scala", "Hadoop"))
     println(Pair("Scala", 2.13))
   }
 
+  /**
+   * 上界
+   */
   def funcWithUpperBound[T <: Person](a: Array[T]) = println(a)
 
+  /**
+   * 下界
+   */
   def funcWithLowerBound[T >: Policeman](a: Array[T]) = println(a)
 
-  def funcWithUpperAndLowerBound[T >: Policeman <: Person ](array:Array[T]) = println(array)
+  /**
+   * 上下界
+   */
+  def funcWithUpperAndLowerBound[T >: Policeman <: Person](array: Array[T]) = println(array)
 
   case class Pair[T](var a: T, var b: T)
 
@@ -54,4 +76,16 @@ object GenericSample {
 
   class Superman extends Policeman
 
+  class Super
+
+  class Sub extends Super
+
+  // 非变
+  class Temp1[T]
+
+  // 协变
+  class Temp2[+T]
+
+  // 逆变
+  class Temp3[-T]
 }
