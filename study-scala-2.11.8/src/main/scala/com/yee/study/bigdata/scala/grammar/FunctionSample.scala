@@ -38,5 +38,11 @@ object FunctionSample {
       if (args.length == 0) 0
       else args.head + recursiveSum(args.tail: _*)
     }
+
+    // 柯里化函数
+    val f = (x : Double) => Math.PI / 2 - x
+    val cos = f andThen math.sin
+
+    println(cos(1))
   }
 }
