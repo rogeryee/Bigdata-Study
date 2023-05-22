@@ -15,7 +15,7 @@ public class SourceLocalFile {
         executionEnvironment.setParallelism(1);
 
         // 读取本地文件
-        DataSource<String> lineDS = executionEnvironment.readTextFile("file:///Users/cntp/MyWork/yee/bigdata-study/study-flink/data/test.txt");
+        DataSource<String> lineDS = executionEnvironment.readTextFile("file:///Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/data/test.txt");
 
         // 输出
         lineDS.print();

@@ -17,6 +17,8 @@ public class SinkPrintSink {
         // Env
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+        System.out.println("SinkPrintSink start");
+
         // Source
         DataStreamSource<Tuple3<Integer, String, Double>> sourceDS = env.fromElements(
                 Tuple3.of(19, "xuzheng", 178.8), Tuple3.of(17, "huangbo", 168.8), Tuple3.of(18, "wangbaoqiang", 174.8),

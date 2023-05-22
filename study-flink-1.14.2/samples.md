@@ -15,10 +15,20 @@
 >> ### 通过 socketTextStream 方式来读取数据的示例
 >> class  : SourceSocket
 >> package: com.yee.study.bigdata.flink1442.source.builtin
+> ```
+> ./flink run-application -t yarn-application \
+> -c com.yee.study.bigdata.flink114.java.source.builtin.SourceSocket \
+> /Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/target/bigdata-flink-1.14.2-1.0-SNAPSHOT.jar
+> ```
 >
 >> ### 通过 readTextFile 方式来读取 本地文件 的示例
 >> class  : SourceLocalFile
 >> package: com.yee.study.bigdata.flink1442.source.builtin
+> ```
+> ./flink run-application -t yarn-application \
+> -c com.yee.study.bigdata.flink114.java.source.builtin.SourceLocalFile \
+> /Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/target/bigdata-flink-1.14.2-1.0-SNAPSHOT.jar
+> ```
 >
 >> ### 通过 readTextFile 方式来读取 HDFS文件 的示例
 >> class  : SourceHDFSFile
@@ -27,6 +37,11 @@
 >> ### 通过 fromCollection 方式来读取 Collection 的示例
 >> class  : SourceCollection
 >> package: com.yee.study.bigdata.flink1442.source.builtin
+> ```
+> ./flink run-application -t yarn-application \
+> -c com.yee.study.bigdata.flink114.java.source.builtin.SourceCollection \
+> /Users/cntp/MyWork/yee/bigdata-study/study-flink-1.14.2/target/bigdata-flink-1.14.2-1.0-SNAPSHOT.jar
+> ```
 >
 >> ### 自定义读取mysql的数据源 示例
 >> class  : SourceMySQL

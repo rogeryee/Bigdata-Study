@@ -16,13 +16,6 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <repositories>
-        <repository>
-            <id>cloudera.repo</id>
-            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
 
         <!-- log -->
@@ -63,6 +56,24 @@
             <version>${deps.flink.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-statebackend-rocksdb_${deps.flink.scala.version}</artifactId>
+            <version>${deps.flink.version}</version>
+        </dependency>
+
         <!-- Flink Table & SQL -->
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -89,44 +100,28 @@
         </dependency>
         <!-- Flink Table & SQL end-->
 
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-clients_${deps.flink.scala.version}</artifactId>
-            <version>${deps.flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime-web_${deps.flink.scala.version}</artifactId>
-            <version>${deps.flink.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-statebackend-rocksdb_${deps.flink.scala.version}</artifactId>
-            <version>${deps.flink.version}</version>
-        </dependency>
-
-        <!-- Flink Format -->
+        <!-- Flink CSV -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-csv</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
+        <!-- Flink JSON -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-json</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
-        <!-- Flink Connectors -->
+        <!-- Flink Connectors - Kafka -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
+        <!-- Flink Connectors - ElasticSearch -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-elasticsearch7_${deps.flink.scala.version}</artifactId>
@@ -140,35 +135,25 @@
             </exclusions>
         </dependency>
 
+        <!-- Flink Connectors - JDBC -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-jdbc_${deps.flink.scala.version}</artifactId>
             <version>${deps.flink.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-hive -->
+        <!-- Flink Connectors - Hive -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-hive_2.11</artifactId>
             <version>1.14.2</version>
-<!--            <scope>provided</scope>-->
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.hive/hive-exec -->
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>3.1.2</version>
-<!--            <scope>provided</scope>-->
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-shaded-hadoop-3 -->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.flink</groupId>-->
-<!--            <artifactId>flink-shaded-hadoop-3</artifactId>-->
-<!--            <version>3.1.1.7.2.9.0-173-9.0</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -182,13 +167,13 @@
             <version>${deps.hadoop.verison}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-auth -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-auth</artifactId>
             <version>3.3.1</version>
         </dependency>
 
+        <!-- MySQL JDBC -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -211,56 +196,18 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
-        <sourceDirectory>src/main/scala</sourceDirectory>
         <plugins>
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>2.15.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <args>
-                        <arg>-target:jvm-1.8</arg>
-                    </args>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.yee.study.bigdata.flink114.scala.table.HudiSample</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.yee.study.bigdata.flink114.java.sink.userdefine.SinkPrintSink</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>
