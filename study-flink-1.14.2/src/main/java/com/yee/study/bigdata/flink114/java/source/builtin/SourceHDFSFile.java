@@ -15,7 +15,7 @@ public class SourceHDFSFile {
         executionEnvironment.setParallelism(2);
 
         // 读取 HDFS 文件，需要准备 core-site.xml 和 hdfs-site.xml 文件放置到项目中
-        DataSource<String> lineDS = executionEnvironment.readTextFile("hdfs:///yish/test/test.txt");
+        DataSource<String> lineDS = executionEnvironment.readTextFile("hdfs:///yish/test/hdfs.txt");
 
         // 输出
         lineDS.print();

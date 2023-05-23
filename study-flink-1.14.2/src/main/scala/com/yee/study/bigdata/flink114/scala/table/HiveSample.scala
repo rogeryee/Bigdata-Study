@@ -3,7 +3,7 @@ package com.yee.study.bigdata.flink114.scala.table
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.{SqlDialect, Table}
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
-import org.apache.flink.table.catalog.hive.HiveCatalog
+//import org.apache.flink.table.catalog.hive.HiveCatalog
 
 /**
  * Flink SQL + Kafka 示例
@@ -110,13 +110,13 @@ object HiveSample {
         |""".stripMargin)
     tabEnv.createTemporaryView("stat_table", statTable)
 
-    val hive: HiveCatalog = new HiveCatalog(
-      "myhive",
-      "roger_tmp",
-      "/Users/cntp/MyWork/DevTools/apache-hive-3.1.3-bin/conf")
-    tabEnv.registerCatalog("myhive", hive)
-    tabEnv.useCatalog("myhive")
-    tabEnv.getConfig.setSqlDialect(SqlDialect.HIVE)
+//    val hive: HiveCatalog = new HiveCatalog(
+//      "myhive",
+//      "roger_tmp",
+//      "/Users/cntp/MyWork/DevTools/apache-hive-3.1.3-bin/conf")
+//    tabEnv.registerCatalog("myhive", hive)
+//    tabEnv.useCatalog("myhive")
+//    tabEnv.getConfig.setSqlDialect(SqlDialect.HIVE)
 
     // Sink Table
     tabEnv.executeSql(
