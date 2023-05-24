@@ -78,7 +78,7 @@ object SqlSample {
         |     from base
         | ) t
         | where t.rank <= 3
-        | order by date, rank desc
+        | order by date, rank
         |""".stripMargin)
       .show
   }
