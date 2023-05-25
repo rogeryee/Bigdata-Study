@@ -54,6 +54,13 @@
             <version>${deps.spark.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-hive -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${deps.spark.scala.version}</artifactId>
+            <version>${deps.spark.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
