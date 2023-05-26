@@ -12,7 +12,7 @@ object HiveSample {
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession
       .builder()
-      .appName("ExternalSourceSample")
+      .appName("HiveSample")
       .master("local[*]")
       .config("hive.metastore.uris", "thrift://localhost:9083")
       .enableHiveSupport()

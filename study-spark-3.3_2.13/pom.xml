@@ -23,13 +23,7 @@
 
     <dependencies>
 
-        <!-- Slf4j + Logback -->
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-classic</artifactId>-->
-<!--            <version>${deps.logback.version}</version>-->
-<!--        </dependency>-->
-
+        <!-- Scala -->
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
@@ -42,23 +36,32 @@
             <version>${deps.scala.version}</version>
         </dependency>
 
+        <!-- Spark Core -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${deps.spark.scala.version}</artifactId>
             <version>${deps.spark.version}</version>
         </dependency>
 
+        <!-- Spark SQL -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${deps.spark.scala.version}</artifactId>
             <version>${deps.spark.version}</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-hive -->
+        <!-- Spark Hive -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_${deps.spark.scala.version}</artifactId>
             <version>${deps.spark.version}</version>
+        </dependency>
+
+        <!-- Delta Lake -->
+        <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-core_2.13</artifactId>
+            <version>2.3.0</version>
         </dependency>
 
     </dependencies>
@@ -77,9 +80,9 @@
                         </goals>
                     </execution>
                 </executions>
-<!--                <configuration>-->
-<!--                    <scalaVersion>${scala.version}</scalaVersion>-->
-<!--                </configuration>-->
+                <!--                <configuration>-->
+                <!--                    <scalaVersion>${scala.version}</scalaVersion>-->
+                <!--                </configuration>-->
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
