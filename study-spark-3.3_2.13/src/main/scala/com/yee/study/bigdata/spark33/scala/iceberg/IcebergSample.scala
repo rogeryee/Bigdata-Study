@@ -1,8 +1,6 @@
 package com.yee.study.bigdata.spark33.scala.iceberg
 
-import io.delta.tables.DeltaTable
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.types.IntegerType
 
 /**
  * Spark 读写 Iceberg 示例
@@ -12,230 +10,188 @@ import org.apache.spark.sql.types.IntegerType
 object IcebergSample {
 
   def main(args: Array[String]): Unit = {
-    val spark: SparkSession = SparkSession
-      .builder()
-      .appName("DeltaLakeSample")
-      .master("local[*]")
-      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
-//      .config("spark.sql.catalog.spark_catalog.type", "hive")
-//      .config("hive.metastore.uris", "thrift://localhost:9083")
-//      .enableHiveSupport()
-      .getOrCreate()
-
-    //    sample_2(spark) // 基于DataFrame读写数据（HDFS）
-    //    sample_3(spark) // 基于DataFrame读写数据（HIVE）
-    //    sample_4(spark) // 基于 DeltaTable API 读写数据（HIVE）
-    //    sample_5(spark) // 基于SparkSQL读写数据（包括CRUD操作）
-
-    spark.close()
+    //    sample_1() // 基于 HDFS
+    //    sample_2() // 基于 HDFS (基于默认的 spark_catalog)
+    sample_3() // 基于 Hive
   }
 
   /**
-   * 基于DataFrame读写数据（HDFS）
+   * 基于 HDFS
+   *
+   * @param spark
+   */
+  def sample_1(): Unit = {
+    val spark: SparkSession = getSparkSession()
+    try {
+      // create table
+      spark.sql(
+        """
+          |create table hadoop_local.iceberg.employee_iceberg
+          |(
+          | id int,
+          | name string,
+          | age int
+          |) using iceberg
+          |""".stripMargin)
+
+      // insert data
+      spark.sql(
+        """
+          |insert into hadoop_local.iceberg.employee_iceberg values
+          | (1,"zs",18),
+          | (2,"ls",19),
+          | (3,"ww",20)
+          |""".stripMargin)
+
+      // query data
+      spark.sql(
+        """
+          |select *
+          |from hadoop_local.iceberg.employee_iceberg
+          |where age >= 20
+          |""".stripMargin)
+        .show
+    } finally {
+      // Clean up
+      spark.close()
+    }
+  }
+
+  /**
+   * 基于 HDFS (基于默认的 spark_catalog)
    *
    * @param spark
    */
   def sample_2(): Unit = {
-    val spark: SparkSession = SparkSession
+    val spark: SparkSession = getSparkSessionDefault()
+    try {
+      // create table
+      spark.sql(
+        """
+          |create table iceberg.employee_iceberg_v2
+          |(
+          | id int,
+          | name string,
+          | age int
+          |) using iceberg
+          |""".stripMargin)
+
+      // insert data
+      spark.sql(
+        """
+          |insert into iceberg.employee_iceberg_v2 values
+          | (1,"zs",18),
+          | (2,"ls",19),
+          | (3,"ww",20)
+          |""".stripMargin)
+
+      // query data
+      spark.sql(
+        """
+          |select *
+          |from iceberg.employee_iceberg_v2
+          |where age >= 20
+          |""".stripMargin)
+        .show
+    } finally {
+      // Clean up
+      spark.close()
+    }
+  }
+
+  /**
+   * 基于 Hive
+   *
+   * @param spark
+   */
+  def sample_3(): Unit = {
+    val spark: SparkSession = getSparkSessionWithHiveSupport()
+
+    val tableName = "roger_tmp.employee_iceberg_v3"
+    try {
+      // create table
+      spark.sql(
+        s"""
+          |create table ${tableName}
+          |(
+          | id int,
+          | name string,
+          | age int
+          |) using iceberg
+          |""".stripMargin)
+
+      // insert data
+      spark.sql(
+        s"""
+          |insert into ${tableName}
+          | (1,"zs",18),
+          | (2,"ls",19),
+          | (3,"ww",20)
+          |""".stripMargin)
+
+      // query data
+      spark.sql(
+        s"""
+          |select *
+          |from ${tableName}
+          |where age >= 20
+          |""".stripMargin)
+        .show
+    } finally {
+      // Clean up
+      spark.close()
+    }
+  }
+
+  /**
+   * 获取 SparkSession（基于HDFS）
+   *
+   * @return
+   */
+  def getSparkSession(): SparkSession = {
+    SparkSession
       .builder()
       .appName("DeltaLakeSample")
       .master("local[*]")
-      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+      .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+      .config("spark.sql.catalog.hadoop_local", "org.apache.iceberg.spark.SparkCatalog")
+      .config("spark.sql.catalog.hadoop_local.type", "hadoop")
+      .config("spark.sql.catalog.hadoop_local.warehouse", "hdfs://localhost:9000/yish")
       .getOrCreate()
-
-    import spark.implicits._
-    // Write
-    val df = Seq(
-      (1, "Roger", 30, "M", 2022),
-      (2, "Andy", 40, "F", 2023)
-    ).toDF("id", "name", "age", "gender", "dt")
-    df.write
-      .format("delta")
-      .save("hdfs://localhost:9000/yish/employee_delta")
-
-    // Read
-    spark
-      .read
-      .format("delta")
-      .load("hdfs://localhost:9000/yish/employee_delta")
-      .show()
-
-    spark.close()
   }
 
   /**
-   * 基于DataFrame读写数据（HIVE）
+   * 获取 SparkSession（基于HDFS）
    *
-   * SparkSession 配置：
-   * .config("hive.metastore.uris", "thrift://localhost:9083")
-   * .enableHiveSupport()
-   *
-   * @param spark
+   * @return
    */
-  def sample_3(spark: SparkSession): Unit = {
-    import spark.implicits._
-    // Write
-    val df = Seq(
-      (1, "Roger", 30, "M", 2022),
-      (2, "Andy", 40, "F", 2023)
-    ).toDF("id", "name", "age", "gender", "dt")
-    df.write
-      .format("delta")
-      .saveAsTable("roger_tmp.employee_delta")
-
-    spark.sql(
-      """
-        |select
-        |*
-        |from roger_tmp.employee_delta
-        |""".stripMargin)
-      .show
+  def getSparkSessionDefault(): SparkSession = {
+    SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkCatalog")
+      .config("spark.sql.catalog.spark_catalog.type", "hadoop")
+      .config("spark.sql.catalog.spark_catalog.warehouse", "hdfs://localhost:9000/yish")
+      .getOrCreate()
   }
 
   /**
-   * 基于 DeltaTable API 读写数据（HIVE）
+   * 获取 SparkSession（基于Hive）
    *
-   * @param spark
+   * @return
    */
-  def sample_4(spark: SparkSession): Unit = {
-    val tableName = "roger_tmp.employee_delta_v2"
-    DeltaTable.createOrReplace(spark)
-      .tableName(tableName)
-      .addColumn("id", "INT")
-      .addColumn("name", "STRING")
-      .addColumn("gender", "STRING")
-      .addColumn("login_time", "TIMESTAMP")
-      .addColumn(DeltaTable.columnBuilder("year")
-        .dataType(IntegerType)
-        .generatedAlwaysAs("YEAR(login_time)")
-        .build())
-      .addColumn(DeltaTable.columnBuilder("month")
-        .dataType(IntegerType)
-        .generatedAlwaysAs("MONTH(login_time)")
-        .build())
-      .addColumn(DeltaTable.columnBuilder("day")
-        .dataType(IntegerType)
-        .generatedAlwaysAs("DAY(login_time)")
-        .build())
-      .partitionedBy("year", "month", "day")
-      .execute()
-
-    spark.sql(
-      s"""
-         |insert into ${tableName}
-         |select 1 id, 'Roger' name, 'M' gender, '2023-05-26 10:21:48' login_time, 2023 year, 5 month, 26 day
-         |""".stripMargin)
-      .show
-
-    /**
-     * +---+-----+------+-------------------+----+-----+---+
-     * | id| name|gender|         login_time|year|month|day|
-     * +---+-----+------+-------------------+----+-----+---+
-     * |  1|Roger|     M|2023-05-26 10:21:48|2023|    5| 26|
-     * +---+-----+------+-------------------+----+-----+---+
-     */
-    spark.sql(
-      s"""
-         |select
-         |*
-         |from ${tableName}
-         |""".stripMargin)
-      .show
-  }
-
-  /**
-   * 基于SparkSQL读写数据
-   *
-   * @param spark
-   */
-  def sample_5(spark: SparkSession): Unit = {
-    val tableName = "roger_tmp.employee_delta_v3"
-    if (spark.catalog.tableExists(tableName)) {
-      spark.sql(s"drop table ${tableName}")
-    }
-
-    // create table
-    spark.sql(
-      s"""
-         |create table ${tableName}
-         |using delta
-         |as
-         |select 1 id, 'Roger' name, 30 age union all
-         |select 2 id, 'Andy' name, 40 age union all
-         |select 3 id, 'Joey' name, 50 age
-         |""".stripMargin)
-
-    /**
-     * +---+-----+---+
-     * | id| name|age|
-     * +---+-----+---+
-     * |  1|Roger| 30|
-     * |  3| Joey| 50|
-     * |  2| Andy| 40|
-     * +---+-----+---+
-     */
-    spark.sql(
-      s"""
-         |select *
-         |from ${tableName}
-         |""".stripMargin)
-      .show
-
-    // overwrite table
-    spark.sql(
-      s"""
-         |insert overwrite ${tableName}
-         |select 1 id, 'Roger' name, 30 age union all
-         |select 3 id, 'Joey' name, 50 age union all
-         |select 4 id, 'John' name, 60 age union all
-         |select 5 id, 'Amy' name, 70 age
-         |""".stripMargin)
-
-    /**
-     * +---+-----+---+
-     * | id| name|age|
-     * +---+-----+---+
-     * |  1|Roger| 30|
-     * |  3| Joey| 50|
-     * |  4| John| 60|
-     * |  5|  Amy| 70|
-     * +---+-----+---+
-     */
-    spark.sql(
-      s"""
-         |select *
-         |from ${tableName}
-         |""".stripMargin)
-      .show
-
-    // update data
-    spark.sql(
-      s"""
-         |update ${tableName}
-         |set age = age + 1
-         |where id = 3
-         |""".stripMargin)
-
-    spark.sql(
-      s"""
-         |delete from ${tableName}
-         |where id % 2 = 0
-         |""".stripMargin)
-
-    /**
-     * +---+-----+---+
-     * | id| name|age|
-     * +---+-----+---+
-     * |  1|Roger| 30|
-     * |  3| Joey| 51|
-     * |  5|  Amy| 70|
-     * +---+-----+---+
-     */
-    spark.sql(
-      s"""
-         |select *
-         |from ${tableName}
-         |""".stripMargin)
-      .show
+  def getSparkSessionWithHiveSupport(): SparkSession = {
+    SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+      .config("spark.sql.catalog.spark_catalog.type", "hive")
+      .config("spark.sql.catalog.spark_catalog.uri", "thrift://localhost:9083")
+      .enableHiveSupport()
+      .getOrCreate()
   }
 }
