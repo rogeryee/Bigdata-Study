@@ -1,11 +1,9 @@
 package com.yee.study.bigdata.spark33.scala.deltalake
 
+import com.yee.study.bigdata.spark33.scala.Utils
 import io.delta.tables.DeltaTable
-import org.apache.commons.io.FileUtils
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.IntegerType
-
-import java.io.File
 
 /**
  * Spark 读写 DeltaLake 示例
@@ -15,23 +13,11 @@ import java.io.File
 object DeltaLakeSample {
 
   def main(args: Array[String]): Unit = {
-    //    val spark: SparkSession = SparkSession
-    //      .builder()
-    //      .appName("DeltaLakeSample")
-    //      .master("local[*]")
-    //      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    //      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    //      .config("hive.metastore.uris", "thrift://localhost:9083")
-    //      .enableHiveSupport()
-    //      .getOrCreate()
-
-    sample_1() // 基于DataFrame读写数据（本地文件）
-    //    sample_2(spark) // 基于DataFrame读写数据（HDFS）
-    //    sample_3(spark) // 基于DataFrame读写数据（HIVE）
-    //    sample_4(spark) // 基于 DeltaTable API 读写数据（HIVE）
-    //    sample_5(spark) // 基于SparkSQL读写数据（包括CRUD操作）
-
-    //    spark.close()
+    //    sample_1() // 基于DataFrame读写数据（本地文件）
+    //    sample_2() // 基于DataFrame读写数据（HDFS）
+    //    sample_3() // 基于DataFrame读写数据（HIVE）
+    //    sample_4() // 基于 DeltaTable API 读写数据（HIVE）
+    sample_5() // 基于SparkSQL读写数据（包括CRUD操作）
   }
 
   /**
@@ -40,20 +26,12 @@ object DeltaLakeSample {
    * @param spark
    */
   def sample_1(): Unit = {
-    val spark: SparkSession = SparkSession
-      .builder()
-      .appName("DeltaLakeSample")
-      .master("local[*]")
-      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-      .getOrCreate()
-
+    val spark: SparkSession = getSparkSession
     import spark.implicits._
 
     val filePath = "study-spark-3.3_2.13/data/employee_delta"
     try {
-
-      // Write
+      // Write data
       val df = Seq(
         (1, "Roger", 30, "M", 2022),
         (2, "Andy", 40, "F", 2023)
@@ -63,43 +41,54 @@ object DeltaLakeSample {
         .format("delta")
         .save(filePath)
 
-      // Read
+      // Read data
       spark
         .read
         .format("delta")
         .load(filePath)
         .show()
     } finally {
+      // Clean up
+      Utils.deleteLocalDirectory(filePath)
       spark.close()
-      FileUtils.cleanDirectory(new File(filePath))
     }
   }
 
   /**
    * 基于DataFrame读写数据（HDFS）
    *
-   * 删除原有目录：hadoop fs -rm -r /yish/employee_delta
+   * 删除原有目录：hadoop fs -rm -r /yish/employee_delta_hdfs
    *
    * @param spark
    */
-  def sample_2(spark: SparkSession): Unit = {
+  def sample_2(): Unit = {
+    val spark: SparkSession = getSparkSession()
     import spark.implicits._
-    // Write
-    val df = Seq(
-      (1, "Roger", 30, "M", 2022),
-      (2, "Andy", 40, "F", 2023)
-    ).toDF("id", "name", "age", "gender", "dt")
-    df.write
-      .mode("overwrite")
-      .format("delta")
-      .save("hdfs://localhost:9000/yish/employee_delta")
 
-    // Read
-    spark
-      .read
-      .format("delta")
-      .load("hdfs://localhost:9000/yish/employee_delta")
-      .show()
+    val path = "hdfs://localhost:9000/yish/employee_delta_hdfs"
+    try {
+      // Write data
+      val df = Seq(
+        (1, "Roger", 30, "M", 2022),
+        (2, "Andy", 40, "F", 2023)
+      ).toDF("id", "name", "age", "gender", "dt")
+
+      df.write
+        .mode("overwrite")
+        .format("delta")
+        .save(path)
+
+      // Read data
+      spark
+        .read
+        .format("delta")
+        .load(path)
+        .show()
+    } finally {
+      // Clean up
+      Utils.deleteHdfsDirectory(spark, path)
+      spark.close()
+    }
   }
 
   /**
@@ -111,13 +100,14 @@ object DeltaLakeSample {
    *
    * @param spark
    */
-  def sample_3(spark: SparkSession): Unit = {
+  def sample_3(): Unit = {
+    val spark: SparkSession = getSparkSessionWithHiveSupport()
+    import spark.implicits._
+
     val tableName = "roger_tmp.employee_delta"
     if (spark.catalog.tableExists(tableName)) {
       spark.sql(s"drop table ${tableName}")
     }
-
-    import spark.implicits._
 
     // Write
     val df = Seq(
@@ -144,8 +134,13 @@ object DeltaLakeSample {
    *
    * @param spark
    */
-  def sample_4(spark: SparkSession): Unit = {
+  def sample_4(): Unit = {
+    val spark: SparkSession = getSparkSessionWithHiveSupport()
     val tableName = "roger_tmp.employee_delta_v2"
+    if (spark.catalog.tableExists(tableName)) {
+      spark.sql(s"drop table ${tableName}")
+    }
+
     DeltaTable.createOrReplace(spark)
       .tableName(tableName)
       .addColumn("id", "INT")
@@ -195,7 +190,8 @@ object DeltaLakeSample {
    *
    * @param spark
    */
-  def sample_5(spark: SparkSession): Unit = {
+  def sample_5(): Unit = {
+    val spark: SparkSession = getSparkSessionWithHiveSupport()
     val tableName = "roger_tmp.employee_delta_v3"
     if (spark.catalog.tableExists(tableName)) {
       spark.sql(s"drop table ${tableName}")
@@ -284,5 +280,37 @@ object DeltaLakeSample {
          |from ${tableName}
          |""".stripMargin)
       .show
+  }
+
+  /**
+   * 获取 SparkSession
+   *
+   * @return
+   */
+  def getSparkSession(): SparkSession = {
+    SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+      .getOrCreate()
+  }
+
+  /**
+   * 获取 SparkSession（支持Hive）
+   *
+   * @return
+   */
+  def getSparkSessionWithHiveSupport(): SparkSession = {
+    SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+      .config("hive.metastore.uris", "thrift://localhost:9083")
+      .enableHiveSupport()
+      .getOrCreate()
   }
 }
