@@ -1,88 +1,48 @@
-package com.yee.study.bigdata.spark33.scala.deltalake
+package com.yee.study.bigdata.spark33.scala.iceberg
 
 import io.delta.tables.DeltaTable
-import org.apache.commons.io.FileUtils
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types.IntegerType
 
-import java.io.File
-
 /**
- * Spark 读写 DeltaLake 示例
+ * Spark 读写 Iceberg 示例
  *
  * @author Roger.Yi
  */
-object DeltaLakeSample {
+object IcebergSample {
 
   def main(args: Array[String]): Unit = {
-    //    val spark: SparkSession = SparkSession
-    //      .builder()
-    //      .appName("DeltaLakeSample")
-    //      .master("local[*]")
-    //      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    //      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-    //      .config("hive.metastore.uris", "thrift://localhost:9083")
-    //      .enableHiveSupport()
-    //      .getOrCreate()
+    val spark: SparkSession = SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+//      .config("spark.sql.catalog.spark_catalog.type", "hive")
+//      .config("hive.metastore.uris", "thrift://localhost:9083")
+//      .enableHiveSupport()
+      .getOrCreate()
 
-    sample_1() // 基于DataFrame读写数据（本地文件）
     //    sample_2(spark) // 基于DataFrame读写数据（HDFS）
     //    sample_3(spark) // 基于DataFrame读写数据（HIVE）
     //    sample_4(spark) // 基于 DeltaTable API 读写数据（HIVE）
     //    sample_5(spark) // 基于SparkSQL读写数据（包括CRUD操作）
 
-    //    spark.close()
-  }
-
-  /**
-   * 基于DataFrame读写数据（本地文件）
-   *
-   * @param spark
-   */
-  def sample_1(): Unit = {
-    val spark: SparkSession = SparkSession
-      .builder()
-      .appName("DeltaLakeSample")
-      .master("local[*]")
-      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-      .getOrCreate()
-
-    import spark.implicits._
-
-    val filePath = "study-spark-3.3_2.13/data/employee_delta"
-    try {
-
-      // Write
-      val df = Seq(
-        (1, "Roger", 30, "M", 2022),
-        (2, "Andy", 40, "F", 2023)
-      ).toDF("id", "name", "age", "gender", "dt")
-      df.write
-        .mode("overwrite")
-        .format("delta")
-        .save(filePath)
-
-      // Read
-      spark
-        .read
-        .format("delta")
-        .load(filePath)
-        .show()
-    } finally {
-      spark.close()
-      FileUtils.cleanDirectory(new File(filePath))
-    }
+    spark.close()
   }
 
   /**
    * 基于DataFrame读写数据（HDFS）
    *
-   * 删除原有目录：hadoop fs -rm -r /yish/employee_delta
-   *
    * @param spark
    */
-  def sample_2(spark: SparkSession): Unit = {
+  def sample_2(): Unit = {
+    val spark: SparkSession = SparkSession
+      .builder()
+      .appName("DeltaLakeSample")
+      .master("local[*]")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+      .getOrCreate()
+
     import spark.implicits._
     // Write
     val df = Seq(
@@ -90,7 +50,6 @@ object DeltaLakeSample {
       (2, "Andy", 40, "F", 2023)
     ).toDF("id", "name", "age", "gender", "dt")
     df.write
-      .mode("overwrite")
       .format("delta")
       .save("hdfs://localhost:9000/yish/employee_delta")
 
@@ -100,6 +59,8 @@ object DeltaLakeSample {
       .format("delta")
       .load("hdfs://localhost:9000/yish/employee_delta")
       .show()
+
+    spark.close()
   }
 
   /**
@@ -112,13 +73,7 @@ object DeltaLakeSample {
    * @param spark
    */
   def sample_3(spark: SparkSession): Unit = {
-    val tableName = "roger_tmp.employee_delta"
-    if (spark.catalog.tableExists(tableName)) {
-      spark.sql(s"drop table ${tableName}")
-    }
-
     import spark.implicits._
-
     // Write
     val df = Seq(
       (1, "Roger", 30, "M", 2022),
@@ -126,21 +81,19 @@ object DeltaLakeSample {
     ).toDF("id", "name", "age", "gender", "dt")
     df.write
       .format("delta")
-      .saveAsTable(tableName)
+      .saveAsTable("roger_tmp.employee_delta")
 
     spark.sql(
-      s"""
-         |select
-         |*
-         |from ${tableName}
-         |""".stripMargin)
+      """
+        |select
+        |*
+        |from roger_tmp.employee_delta
+        |""".stripMargin)
       .show
   }
 
   /**
    * 基于 DeltaTable API 读写数据（HIVE）
-   *
-   * hadoop fs -rm -r /user/hive/warehouse/roger_tmp.db/employee_delta_v2
    *
    * @param spark
    */

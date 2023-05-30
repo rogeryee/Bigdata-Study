@@ -64,6 +64,13 @@
             <version>2.3.0</version>
         </dependency>
 
+        <!-- Iceberg -->
+        <dependency>
+            <groupId>org.apache.iceberg</groupId>
+            <artifactId>iceberg-spark-runtime-3.3_2.13</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>
