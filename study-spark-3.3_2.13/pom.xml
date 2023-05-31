@@ -71,6 +71,14 @@
             <version>1.2.1</version>
         </dependency>
 
+        <!-- Scala collection compat -->
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-collection-compat_2.13</artifactId>
+            <version>2.10.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
