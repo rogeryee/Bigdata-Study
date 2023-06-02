@@ -15,6 +15,7 @@
         <module>study-zookeeper-3.6.3</module>
         <module>study-hadoop-3.3.1</module>
         <module>study-flink-1.14.2</module>
+        <module>study-flink-1.16</module>
         <module>study-spark-2.4_2.11.8</module>
         <module>study-spark-3.3_2.13</module>
         <module>study-kafka-3.1.0</module>

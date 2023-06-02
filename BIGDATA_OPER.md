@@ -37,8 +37,11 @@ hdfs dfs -chmod 777 /user
 
 
 
-# Flink
+# Flink SQL
 
 ```shell
+./bin/sql-client.sh
+
+
 ```
 
