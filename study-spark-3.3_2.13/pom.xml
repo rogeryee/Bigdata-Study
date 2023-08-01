@@ -16,9 +16,12 @@
     </parent>
 
     <properties>
+        <deps.scala.compile.version>2.13</deps.scala.compile.version>
         <deps.scala.version>2.13.8</deps.scala.version>
-        <deps.spark.scala.version>2.13</deps.spark.scala.version>
+        <deps.spark.compile.version>3.3</deps.spark.compile.version>
         <deps.spark.version>3.3.0</deps.spark.version>
+        <deps.iceberg.version>1.2.1</deps.iceberg.version>
+        <deps.deltalake.version>2.3.0</deps.deltalake.version>
     </properties>
 
     <dependencies>
@@ -39,42 +42,42 @@
         <!-- Spark Core -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_${deps.spark.scala.version}</artifactId>
+            <artifactId>spark-core_${deps.scala.compile.version}</artifactId>
             <version>${deps.spark.version}</version>
         </dependency>
 
         <!-- Spark SQL -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_${deps.spark.scala.version}</artifactId>
+            <artifactId>spark-sql_${deps.scala.compile.version}</artifactId>
             <version>${deps.spark.version}</version>
         </dependency>
 
         <!-- Spark Hive -->
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-hive_${deps.spark.scala.version}</artifactId>
+            <artifactId>spark-hive_${deps.scala.compile.version}</artifactId>
             <version>${deps.spark.version}</version>
         </dependency>
 
         <!-- Delta Lake -->
         <dependency>
             <groupId>io.delta</groupId>
-            <artifactId>delta-core_2.13</artifactId>
-            <version>2.3.0</version>
+            <artifactId>delta-core_${deps.scala.compile.version}</artifactId>
+            <version>${deps.deltalake.version}</version>
         </dependency>
 
         <!-- Iceberg -->
         <dependency>
             <groupId>org.apache.iceberg</groupId>
-            <artifactId>iceberg-spark-runtime-3.3_2.13</artifactId>
-            <version>1.2.1</version>
+            <artifactId>iceberg-spark-runtime-${deps.spark.compile.version}_${deps.scala.compile.version}</artifactId>
+            <version>${deps.iceberg.version}</version>
         </dependency>
 
         <!-- Scala collection compat -->
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-collection-compat_2.13</artifactId>
+            <artifactId>scala-collection-compat_${deps.scala.compile.version}</artifactId>
             <version>2.10.0</version>
         </dependency>
 
